@@ -1,0 +1,183 @@
+import React from "react";
+import { Snackbar, Alert } from "@mui/material";
+import SearchBar from "../components/SearchBar";
+import AdminLayout from "../layouts/AdminLayout";
+import PacienteModal from "../modals/PacienteModal";
+import { Paciente } from "../types/user";
+import { Add, Delete, InfoRounded } from "@mui/icons-material";
+import { Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
+import DeleteModal from "../modals/DeleteDialog";
+export default function PacienteScreen() {
+    const [showPacienteModal, setShowPacienteModal] = React.useState(false);
+    const [selectedPaciente, setSelectedPaciente] = React.useState<Paciente | null>(null);
+    const [pacientes, setPacientes] = React.useState<Paciente[]>([]);
+    const [snackbar, setSnackbar] = React.useState({ open: false, type: '', message: '' });
+    const [searchQuery, setSearchQuery] = React.useState<string>(''); // Armazena o último termo de busca
+    const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+    const handleSnackbarClose = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
+    const handleFilter = (query: string) => {
+        const baseUrl = import.meta.env.VITE_BACKEND_URL;
+        const token = localStorage.getItem('@App:token');
+        if (query.length < 3) {
+            return;
+        }
+
+        setSearchQuery(query); // Salva o termo de busca mais recente
+
+        const url = `${baseUrl}/pacientes/filter_by_name/${query}/`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                setPacientes(data);
+            })
+            .catch((error) => {
+                console.error('Error fetching pacientes:', error);
+            });
+    };
+    
+
+    const handleModalSubmit = (feedback: { type: string; message: string }) => {
+        setSnackbar({ open: true, type: feedback.type, message: feedback.message });
+        setShowPacienteModal(false);
+
+        // Atualiza a lista de pacientes com o último termo de busca
+        if (searchQuery) {
+            handleFilter(searchQuery);
+        }
+    };
+    const handleDelete = (pacienteId: string) => {
+        const baseUrl = import.meta.env.VITE_BACKEND_URL;
+        const token = localStorage.getItem('@App:token');
+        const url = `${baseUrl}/pacientes/${pacienteId}`;
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+            .then((response) => {
+                if (response.ok) {
+                    setSnackbar({ open: true, type: 'success', message: 'Paciente deletado com sucesso!' });
+                    setShowDeleteModal(false);
+                    // Atualiza a lista de pacientes com o último termo de busca
+                    if (searchQuery) {
+                        handleFilter(searchQuery);
+                    }
+                } else {
+                    setSnackbar({ open: true, type: 'error', message: 'Erro ao deletar paciente.' });
+                }
+            }).catch((error) => {
+                console.error('Error deleting paciente:', error);
+                setSnackbar({ open: true, type: 'error', message: 'Erro ao deletar paciente.' });
+            }
+        );
+    }
+    return (
+        <AdminLayout>
+            <SearchBar onSearch={handleFilter} />
+            {showPacienteModal && (
+                <PacienteModal
+                    open={showPacienteModal}
+                    onClose={() => setShowPacienteModal(false)}
+                    onSubmit={handleModalSubmit} // Chama a função para atualizar a lista e exibir a snackbar
+                    paciente={selectedPaciente}
+                    mode={selectedPaciente ? 'edit' : 'create'}
+                />
+            )}
+
+
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginY: 2 }}>
+                {pacientes.length > 0 && (
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Nome</TableCell>
+                                <TableCell>Data Nascimento</TableCell>
+                                <TableCell>Info</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {pacientes.map((paciente) => (
+                                <TableRow key={paciente.id}>
+                                    <TableCell>{paciente.nome}</TableCell>
+                                    <TableCell>
+                                        {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
+                                    </TableCell>
+                                    <TableCell>
+                                        <IconButton>
+                                            <InfoRounded
+                                                color="info"
+                                                onClick={() => {
+                                                    setSelectedPaciente(paciente);
+                                                    setShowPacienteModal(true);
+                                                }}
+                                            />
+                                        </IconButton>
+                                        <IconButton
+                                            color="error"
+                                            onClick={() => {
+                                                setSelectedPaciente(paciente);
+                                                setShowDeleteModal(true);
+                                            }}
+                                        >
+                                            <Delete />
+                                        </IconButton>
+                                        {showDeleteModal && (
+                                            <DeleteModal
+                                                open={showDeleteModal}
+                                                onClose={() => setShowDeleteModal(false)}
+                                                onConfirm={() => {
+                                                    handleDelete(paciente.id);
+                                                    setShowDeleteModal(false);
+                                                }}
+                                            />
+                                        )}
+                                       
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </Box>
+            <Tooltip title="Adicionar Paciente" arrow>
+                <Fab
+                    color="primary"
+                    aria-label="add"
+                    onClick={() => {
+                        setSelectedPaciente(null);
+                        setShowPacienteModal(true);
+                    }}
+                    style={{ position: 'fixed', bottom: 16, right: 16 }}
+                >
+                    <Add />
+                </Fab>
+            </Tooltip>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbar.type as 'success' | 'error' | 'info' | 'warning'}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
+        </AdminLayout>
+    );
+}

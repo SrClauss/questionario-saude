@@ -1,0 +1,183 @@
+import os
+from flask import Blueprint, request, jsonify, send_from_directory, current_app
+from werkzeug.utils import secure_filename
+from PIL import Image
+import io
+from utils.auth import token_required
+
+from flask import Blueprint, request, jsonify
+from models import User
+from extensions import db
+from utils.auth import token_required
+
+user_bp = Blueprint('users', __name__)
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@user_bp.route('/users', methods=['GET'])
+@token_required(roles=['admin'])
+def get_users():
+    """
+    Retorna todos os usuários.
+    """
+    users = User.query.all()
+    return jsonify([user.to_json() for user in users]), 200
+
+@user_bp.route('/users/<string:id>', methods=['GET'])
+@token_required(roles=['admin'])
+def get_user(id):
+    """
+    Retorna um usuário pelo ID.
+    """
+    user = User.query.get(id)
+    if not user:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    return jsonify(user.to_json()), 200
+
+@user_bp.route('/users', methods=['POST'])
+@token_required(roles=['admin'])
+def create_user():
+    """
+    Cria um novo usuário.
+    """
+    data = request.get_json()
+    try:
+        user = User(
+            email=data['email'],
+            role=data['role'],
+            is_active=data['is_active']
+        )
+        user.set_password(data['senha'])
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.to_json()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@user_bp.route('/users/<string:id>', methods=['PUT'])
+@token_required(roles=['admin'])
+def update_user(id):
+    """
+    Atualiza um usuário existente.
+    """
+    user = User.query.get(id)
+    if not user:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+
+    data = request.get_json()
+    try:
+        user.email = data.get('email', user.email)
+        user.role = data.get('role', user.role)
+        user.is_active = data.get('is_active', user.is_active)
+        if 'senha' in data:
+            user.set_password(data['senha'])
+        db.session.commit()
+        return jsonify(user.to_json()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@user_bp.route('/users/<string:id>', methods=['DELETE'])
+@token_required(roles=['admin'])
+def delete_user(id):
+    """
+    Deleta um usuário pelo ID.
+    """
+    user = User.query.get(id)
+    if not user:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+
+    db.session.delete(user)
+    db.session.commit()
+    return '', 204
+
+@user_bp.route('/users/login', methods=['POST'])
+def login():
+    """
+    Realiza o login de um usuário.
+    """
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+    paciente = User.query.filter_by(email=data['email'], role='paciente').first()
+    colaborador = User.query.filter_by(email=data['email'], role='colaborador').first()
+    profissional_saude = User.query.filter_by(email=data['email'], role='profissional_saude').first()
+    if user is None or not user.check_password(data['password']):
+        return jsonify({'error': 'Credenciais inválidas'}), 401
+    result = {
+        'user': user.to_json(),
+        'paciente': paciente.to_json() if paciente else None,
+        'colaborador': colaborador.to_json() if colaborador else None,
+        'profissional_saude': profissional_saude.to_json() if profissional_saude else None
+    }
+    return jsonify(result), 200
+
+@user_bp.route('/<string:user_id>/upload', methods=['POST'])
+#@token_required(roles=['admin', 'profissional', 'paciente', 'colaborador'])
+def upload_profile_picture(user_id):
+    """
+    Rota para upload de imagem de perfil.
+    """
+    print(request)
+    if 'file' not in request.files:
+        return jsonify({'message': 'Nenhum arquivo enviado'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'message': 'Nenhum arquivo selecionado'}), 400
+
+    if not allowed_file(file.filename):
+        return jsonify({'message': 'Extensão de arquivo não permitida'}), 400
+
+    # Verifica o tamanho do arquivo (máximo 1MB)
+    file.seek(0, os.SEEK_END)
+    file_length = file.tell()
+    if file_length > 1024 * 1024:
+        return jsonify({'message': 'Tamanho do arquivo excede 1MB'}), 400
+    file.seek(0)
+
+    try:
+ 
+        filename = secure_filename(f"{user_id}.{file.filename.rsplit('.', 1)[1].lower()}")
+        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+
+        # Abre a imagem usando Pillow
+        img = Image.open(file)
+
+        # Comprime a imagem
+        img_io = io.BytesIO()
+        img.save(img_io, 'JPEG', quality=70)  # Ajuste a qualidade conforme necessário
+        img_io.seek(0)
+
+        # Salva a imagem comprimida
+        with open(filepath, 'wb') as f:
+            f.write(img_io.read())
+
+        return jsonify({'message': 'Imagem de perfil enviada com sucesso', 'filename': filename}), 200
+
+    except Exception as e:
+        return jsonify({'message': f'Erro ao processar o arquivo: {str(e)}'}), 500
+
+@user_bp.route('/<string:user_id>/image', methods=['GET'])
+def get_profile_picture(user_id):
+    """
+    Rota para obter a imagem de perfil.
+    """
+    try:
+        filename = f"{user_id}.jpeg"  # Supondo que as imagens são salvas como JPG
+        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+
+        # Verifica se o arquivo existe
+        if not os.path.isfile(filepath):
+            return jsonify({'message': 'Imagem não encontrada'}), 404
+
+        # Envia o arquivo
+        return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+    except Exception as e:
+        return jsonify({'message': f'Erro ao processar o arquivo: {str(e)}'}), 500

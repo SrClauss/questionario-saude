@@ -1,0 +1,84 @@
+# Estrutura do projeto:
+# /projeto-noemi
+#   /api (Flask)
+#   /frontend (React)
+
+# Python cache files (em qualquer diretório)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de imagem
+*.jpeg
+*.jpg
+*.png
+
+# API - Flask
+api/*.so
+api/.Python
+api/env/
+api/build/
+api/develop-eggs/
+api/dist/
+api/downloads/
+api/eggs/
+api/.eggs/
+api/lib/
+api/lib64/
+api/parts/
+api/sdist/
+api/var/
+api/wheels/
+api/*.egg-info/
+api/.installed.cfg
+api/*.egg
+api/.env
+api/.venv
+api/venv/
+api/ENV/
+api/.pytest_cache/
+api/.coverage
+api/htmlcov/
+api/.python-version
+api/instance/
+api/migrations/
+
+# Frontend - React
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage
+frontend/build
+frontend/dist
+frontend/.DS_Store
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# IDEs e Editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# Sistema
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Logs e Databases
+*.log
+*.sqlite
+*.db
