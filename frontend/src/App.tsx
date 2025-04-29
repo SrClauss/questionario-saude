@@ -22,6 +22,7 @@ function App() {
             <Route path='/colaborador' element ={<ColaboradorScreen />} />
             <Route path='/questionario' element ={<QuestionarioScreen />} />
             <Route path='/cadastro-questionario' element ={<CadastroQuestionarioScreen />} />
+            <Route path='/cadastro-questionario/:id' element ={<CadastroQuestionarioScreen />} />
 
           </Routes>
       </ThemeProvider>
