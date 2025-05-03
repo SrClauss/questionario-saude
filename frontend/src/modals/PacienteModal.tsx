@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import EnderecoModal from './EnderecoModal';
 import { Paciente } from "../types/user";
 import { TextField, Button, Box, Modal, Typography, CircularProgress } from '@mui/material';
@@ -50,7 +50,9 @@ const reducer = (state: PacienteState, action: any) => {
         case 'SET_ENDERECOS':
             return { ...state, enderecos: action.payload };
         case 'ADD_ENDERECO':
-            const enderecoExiste = state.enderecos.some((endereco) => endereco.id === action.payload.id);
+            const enderecoExiste = state.enderecos.some(
+                (endereco) => endereco.id === action.payload.id
+            );
             if (enderecoExiste) {
                 return state;
             }
@@ -64,8 +66,14 @@ const reducer = (state: PacienteState, action: any) => {
 
 const PacienteModal: React.FC<PacienteModalProps> = ({ open, onClose, paciente, mode = 'create', onSubmit }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const [addresModalShow, setAddresModalShow] = React.useState(false);
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [addresModalShow, setAddresModalShow] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [formErrors, setFormErrors] = useState<{ 
+        nome?: string; 
+        email?: string; 
+        cpf?: string; 
+        data_nascimento?: string 
+    }>({});
     const theme: Theme = useTheme();
 
     useEffect(() => {
@@ -101,12 +109,49 @@ const PacienteModal: React.FC<PacienteModalProps> = ({ open, onClose, paciente, 
         }
     }, [paciente]);
 
+    const validateForm = (): boolean => {
+        const errors: { 
+            nome?: string; 
+            email?: string; 
+            cpf?: string; 
+            data_nascimento?: string 
+        } = {};
+        let valid = true;
+
+        if (!state.nome.trim()) {
+            errors.nome = 'Nome é obrigatório';
+            valid = false;
+        }
+        if (!state.email.trim()) {
+            errors.email = 'Email é obrigatório';
+            valid = false;
+        } else if (!/^\S+@\S+\.\S+$/.test(state.email)) {
+            errors.email = 'Email inválido';
+            valid = false;
+        }
+        if (!state.cpf.trim()) {
+            errors.cpf = 'CPF é obrigatório';
+            valid = false;
+        }
+        if (!state.data_nascimento.trim()) {
+            errors.data_nascimento = 'Data de Nascimento é obrigatória';
+            valid = false;
+        }
+
+        setFormErrors(errors);
+        return valid;
+    };
+
     const handleSubmit = async () => {
+        if (!validateForm()) return;
         setIsLoading(true);
 
         try {
             const baseUrl = import.meta.env.VITE_BACKEND_URL;
-            const url = mode === 'create' ? `${baseUrl}/pacientes/register` : `${baseUrl}/pacientes/${paciente?.id}`;
+            const url =
+                mode === 'create'
+                    ? `${baseUrl}/pacientes/register`
+                    : `${baseUrl}/pacientes/${paciente?.id}`;
             const response = await fetch(url, {
                 method: mode === 'create' ? 'POST' : 'PUT',
                 headers: {
@@ -163,12 +208,14 @@ const PacienteModal: React.FC<PacienteModalProps> = ({ open, onClose, paciente, 
                         justifyContent: 'space-between',
                     }}
                 >
-                    <Typography variant="h6">{(mode === 'create' ? 'Criar' : 'Editar') + ' Paciente'}</Typography>
+                    <Typography variant="h6">
+                        {(mode === 'create' ? 'Criar' : 'Editar') + ' Paciente'}
+                    </Typography>
                     <Box
                         sx={{
                             cursor: 'pointer',
                             color: theme.palette.common.white,
-                            display: {xs: 'block', md: 'none'},
+                            display: { xs: 'block', md: 'none' },
                             backgroundColor: theme.palette.error.main,
                             paddingX: '10px',
                             paddingY: '6px',
@@ -189,9 +236,14 @@ const PacienteModal: React.FC<PacienteModalProps> = ({ open, onClose, paciente, 
                         size="small"
                         label="Nome"
                         value={state.nome}
-                        onChange={(e) => dispatch({ type: 'SET_NOME', payload: e.target.value })}
+                        onChange={(e) => {
+                            dispatch({ type: 'SET_NOME', payload: e.target.value });
+                            setFormErrors({ ...formErrors, nome: undefined });
+                        }}
                         fullWidth
                         margin="normal"
+                        error={!!formErrors.nome}
+                        helperText={formErrors.nome}
                     />
                 </ColumnResponsive>
                 <ColumnResponsive>
@@ -199,13 +251,16 @@ const PacienteModal: React.FC<PacienteModalProps> = ({ open, onClose, paciente, 
                         label="Email"
                         size="small"
                         value={state.email}
-                        onChange={(e) => dispatch({ type: 'SET_EMAIL', payload: e.target.value })}
+                        onChange={(e) => {
+                            dispatch({ type: 'SET_EMAIL', payload: e.target.value });
+                            setFormErrors({ ...formErrors, email: undefined });
+                        }}
                         fullWidth
                         margin="normal"
-                        slotProps={{
-                            inputLabel: {
-                                shrink: state.email !== '',
-                            },
+                        error={!!formErrors.email}
+                        helperText={formErrors.email}
+                        InputLabelProps={{
+                            shrink: state.email !== '',
                         }}
                     />
                     <TextField
@@ -223,20 +278,30 @@ const PacienteModal: React.FC<PacienteModalProps> = ({ open, onClose, paciente, 
                         size="small"
                         type="date"
                         value={state.data_nascimento}
-                        onChange={(e) => dispatch({ type: 'SET_DATA_NASCIMENTO', payload: e.target.value })}
+                        onChange={(e) => {
+                            dispatch({ type: 'SET_DATA_NASCIMENTO', payload: e.target.value });
+                            setFormErrors({ ...formErrors, data_nascimento: undefined });
+                        }}
                         InputLabelProps={{
                             shrink: true,
                         }}
                         fullWidth
                         margin="normal"
+                        error={!!formErrors.data_nascimento}
+                        helperText={formErrors.data_nascimento}
                     />
                     <TextField
                         label="CPF"
                         size="small"
                         value={state.cpf}
-                        onChange={(e) => dispatch({ type: 'SET_CPF', payload: e.target.value })}
+                        onChange={(e) => {
+                            dispatch({ type: 'SET_CPF', payload: e.target.value });
+                            setFormErrors({ ...formErrors, cpf: undefined });
+                        }}
                         fullWidth
                         margin="normal"
+                        error={!!formErrors.cpf}
+                        helperText={formErrors.cpf}
                     />
                 </ColumnResponsive>
                 <Box

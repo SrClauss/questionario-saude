@@ -1,18 +1,18 @@
-export interface FonteLiteratura {
-  autor: string;
+export interface FonteBibliografica {
   titulo: string;
+  autores: string;
   ano: string;
-  editora: string;
+  editora?: string; // Editora é opcional
+  local?: string; // Local é opcional
 }
-
 export interface Alternativa {
-  id: string;
+  id?: string;
   pergunta_id: string;
   texto: string;
   valor: number;
   ordem: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Pergunta {
@@ -44,7 +44,7 @@ export interface Questionario {
   titulo: string;
   descricao?: string;
   versao?: string;
-  fontes_literatura?: FonteLiteratura[];
+  fontes_literatura?: FonteBibliografica[];
   is_active: boolean;
   created_at: string;
   updated_at: string;

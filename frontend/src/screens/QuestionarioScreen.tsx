@@ -28,7 +28,7 @@ export default function QuestionarioScreen() {
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: "",
-        type: ""
+        type: "info" as "error" | "success" | "info" | "warning"
     });
     const [searchQuery, setSearchQuery] = useState<string>("");
     const navigate = useNavigate();
@@ -51,16 +51,50 @@ export default function QuestionarioScreen() {
                 "Authorization": `Bearer ${token}`
             }
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+
+                    if (response.status === 401) {
+                        setSnackbar({
+                            open: true,
+                            type: "error",
+                            message: "Sessão expirada. Faça login novamente."
+                        });
+                        localStorage.removeItem("@App:token");
+                        //uma espera de 2 segundos para redirecionar
+                        setTimeout(() => {
+                            navigate("/login");
+                        }, 2000);
+                        return;
+                    }
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                   
+                }
+                return response.json();
+            })
             .then((data) => {
-                setQuestionarios(data);
+                if (Array.isArray(data)) {
+                    setQuestionarios(data);
+                    setSnackbar({
+                        open: true,
+                        type: "success",
+                        message: "Questionários carregados com sucesso!"
+                    });
+                } else {
+                    console.error("API retornou um formato inesperado:", data);
+                    setSnackbar({
+                        open: true,
+                        type: "error",
+                        message: "Erro ao buscar questionários: Formato de resposta inválido"
+                    });
+                }
             })
             .catch((error) => {
                 console.error("Error fetching questionários:", error);
                 setSnackbar({
                     open: true,
                     type: "error",
-                    message: "Erro ao buscar questionários"
+                    message: `Erro ao buscar questionários: ${error}`
                 });
             });
     };
@@ -77,7 +111,12 @@ export default function QuestionarioScreen() {
                 "Authorization": `Bearer ${token}`
             }
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                }
+                return response.json();
+            })
             .then((data) => {
                 setSnackbar({
                     open: true,
@@ -93,7 +132,7 @@ export default function QuestionarioScreen() {
                 setSnackbar({
                     open: true,
                     type: "error",
-                    message: "Erro ao deletar questionário"
+                    message: `Erro ao deletar questionário: ${error.message}`
                 });
             });
     };
@@ -121,7 +160,7 @@ export default function QuestionarioScreen() {
                             <TableCell>{q.titulo}</TableCell>
                             <TableCell>
                                 <Tooltip title="Info">
-                                    <IconButton color="primary">
+                                    <IconButton color="info" onClick={() => navigate(`/cadastro-questionario/${q.id}`)}>
                                         <InfoRounded />
                                     </IconButton>
                                 </Tooltip>
@@ -146,7 +185,7 @@ export default function QuestionarioScreen() {
             >
                 <Alert
                     onClose={handleSnackbarClose}
-                    severity={snackbar.type as "error" | "success" | "info" | "warning"}
+                    severity={snackbar.type}
                     sx={{ width: "100%" }}
                 >
                     {snackbar.message}
