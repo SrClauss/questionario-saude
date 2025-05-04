@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import Pergunta
+from models import Alternativa, Pergunta
 from extensions import db
 from sqlalchemy.orm import joinedload
 from utils.auth import token_required
@@ -162,3 +162,82 @@ def  get_pergunta_detailed(id):
         return jsonify(pergunta_json), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+@perguntas_bp.route('/<id>/batch', methods=['POST'])
+@token_required(roles=['admin', 'profissional_saude'])
+def create_batch_perguntas(id):
+    """
+    Cria várias perguntas de uma só vez com inserção em batch.
+    Exemplo de payload:
+    {
+        "perguntas": [
+            {
+                "texto": "Pergunta 1",
+                "tipo_resposta": "multipla_escolha",
+                "ordem": 1,
+                "is_obrigatoria": false,
+                "alternativas": [
+                    {"texto": "Alternativa 1", "valor": 1, "ordem": 1},
+                    {"texto": "Alternativa 2", "valor": 0, "ordem": 2}
+                ]
+            },
+            {
+                "texto": "Pergunta 2",
+                "tipo_resposta": "multipla_escolha",
+                "ordem": 2,
+                "is_obrigatoria": false,
+                "alternativas": [
+                    {"texto": "Alternativa 3", "valor": 1, "ordem": 1},
+                    {"texto": "Alternativa 4", "valor": 0, "ordem": 2}
+                ]
+            }
+        ]
+    }
+    """
+    data = request.get_json()
+    try:
+        perguntas_criadas = []
+        
+        # Cria as perguntas uma a uma para obter os IDs
+        for pergunta_data in data['perguntas']:
+            # Cria a pergunta
+            pergunta = Pergunta(
+                texto=pergunta_data['texto'],
+                sessao_id=id,  # Usa o ID da sessão da URL
+                tipo_resposta=pergunta_data.get('tipo_resposta', 'multipla_escolha'),
+                ordem=pergunta_data.get('ordem', 0),
+                is_obrigatoria=pergunta_data.get('is_obrigatoria', False)
+            )
+            
+            # Adiciona a pergunta ao banco e faz commit para obter o ID
+            db.session.add(pergunta)
+            db.session.commit()
+            
+            # Agora que temos o ID da pergunta, podemos criar as alternativas
+            for alt_data in pergunta_data['alternativas']:
+                alternativa = Alternativa(
+                    pergunta_id=pergunta.id,  # Associa à pergunta correta
+                    texto=alt_data['texto'],
+                    valor=alt_data.get('valor', 0),  # Valor padrão 0 se não fornecido
+                    ordem=alt_data.get('ordem', 0)   # Ordem padrão 0 se não fornecida
+                )
+                db.session.add(alternativa)
+            
+            # Commit para salvar as alternativas
+            db.session.commit()
+            perguntas_criadas.append(pergunta)
+        
+        # Retorna as perguntas criadas com suas alternativas
+        return jsonify([p.to_json() for p in perguntas_criadas]), 201
+    
+    except KeyError as e:
+        db.session.rollback()
+        error_msg = f"Erro de formato no payload: campo obrigatório '{str(e)}' ausente"
+        print(error_msg)
+        return jsonify({'error': error_msg}), 400
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao criar perguntas em lote: {e}")
+        return jsonify({'error': str(e)}), 400

@@ -40,18 +40,27 @@ def get_sessao(id):
 @token_required(roles=['admin', 'profissional_saude'])
 def create_sessao():
     """
-    Cria uma nova sessão.
+    Cria uma nova sessão e determina a ordem automaticamente.
     """
     data = request.get_json()
     try:
+        # Determina a ordem automaticamente no backend
+        questionario_id = data['questionario_id']
+        # Busca a maior ordem existente para este questionário
+        maior_ordem = db.session.query(db.func.max(Sessao.ordem)).filter_by(
+            questionario_id=questionario_id
+        ).scalar() or 0
+        
+        # Cria a sessão com ordem incrementada
         sessao = Sessao(
-            questionario_id=data['questionario_id'],
+            questionario_id=questionario_id,
             titulo=data['titulo'],
             descricao=data.get('descricao', ''),
-            ordem=data['ordem']
+            ordem=maior_ordem + 1  # Incrementa a ordem automaticamente
         )
         db.session.add(sessao)
         db.session.commit()
+        
         return jsonify(sessao.to_json()), 201
     except Exception as e:
         print(f"Erro ao criar sessão: {e}")

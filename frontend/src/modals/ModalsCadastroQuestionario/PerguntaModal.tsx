@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Modal,
     Box,
@@ -14,9 +14,11 @@ import {
 } from "@mui/material";
 import { Alternativa, Pergunta } from "../../types/questionario";
 import RenderAlternativas from "../../components/AlternativaForm";
+
 interface PerguntaData {
   texto: string;
   tipo_resposta: string;
+  metodo_pontuacao: string; // Adicionado o campo metodo_pontuacao
 }
 
 interface PerguntaModalProps {
@@ -29,30 +31,31 @@ interface PerguntaModalProps {
 const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, initialData }) => {
   const [texto, setTexto] = useState(initialData?.texto || "");
   const [tipoResposta, setTipoResposta] = useState(initialData?.tipo_resposta || "texto");
-  const [errors, setErrors] = useState<{ texto?: string, tipo_resposta?: string }>({});
+  const [metodoPontuacao, setMetodoPontuacao] = useState(initialData?.metodo_pontuacao || "soma_item"); // Novo estado
+  const [errors, setErrors] = useState<{ texto?: string, tipo_resposta?: string, metodo_pontuacao?: string }>({});
   const [showValidationAlert, setShowValidationAlert] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       setTexto(initialData.texto || "");
       setTipoResposta(initialData.tipo_resposta || "texto");
-      // Limpa erros quando o modal é reaberto com dados iniciais
+      setMetodoPontuacao(initialData.metodo_pontuacao || "soma_item"); // Inicializa com o valor existente ou padrão
       setErrors({});
       setShowValidationAlert(false);
     } else {
-      // Limpa campos quando o modal é aberto para uma nova pergunta
       setTexto("");
       setTipoResposta("texto");
+      setMetodoPontuacao("soma_item"); // Valor padrão para nova pergunta
       setErrors({});
       setShowValidationAlert(false);
     }
   }, [initialData, open]);
 
   const validateForm = (): boolean => {
-    const newErrors: { texto?: string, tipo_resposta?: string } = {};
+    const newErrors: { texto?: string, tipo_resposta?: string, metodo_pontuacao?: string } = {};
     let isValid = true;
 
-    // Validação do texto da pergunta
+    // Validação existente...
     if (!texto.trim()) {
       newErrors.texto = "O texto da pergunta é obrigatório";
       isValid = false;
@@ -64,9 +67,14 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
       isValid = false;
     }
 
-    // Validação do tipo de resposta
     if (!tipoResposta) {
       newErrors.tipo_resposta = "O tipo de resposta é obrigatório";
+      isValid = false;
+    }
+
+    // Nova validação para metodo_pontuacao
+    if (!metodoPontuacao) {
+      newErrors.metodo_pontuacao = "O método de pontuação é obrigatório";
       isValid = false;
     }
 
@@ -77,9 +85,10 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
 
   const handleSave = () => {
     if (validateForm()) {
-      onSave({ texto, tipo_resposta: tipoResposta });
+      onSave({ texto, tipo_resposta: tipoResposta, metodo_pontuacao: metodoPontuacao });
       setTexto("");
       setTipoResposta("texto");
+      setMetodoPontuacao("soma_item");
       setErrors({});
       setShowValidationAlert(false);
       onClose();
@@ -96,8 +105,8 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
           marginTop: "10%",
           padding: 3,
           borderRadius: 2,
-          maxHeight: "90vh", // Define altura máxima para o modal
-          overflowY: "auto", // Adiciona scroll vertical quando necessário
+          maxHeight: "90vh",
+          overflowY: "auto",
         }}
       >
         <Typography variant="h6" sx={{ mb: 2 }}>
@@ -146,9 +155,32 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
             <MenuItem value="booleano">Sim/Não</MenuItem>
             <MenuItem value="personalizado">Personalizado</MenuItem>
             <MenuItem value="numero">Número</MenuItem>
-
           </Select>
           {errors.tipo_resposta && <FormHelperText>{errors.tipo_resposta}</FormHelperText>}
+        </FormControl>
+
+        {/* Novo campo para método de pontuação */}
+        <FormControl fullWidth margin="normal" error={!!errors.metodo_pontuacao} required>
+          <InputLabel id="metodo-pontuacao-label">Método de Pontuação</InputLabel>
+          <Select
+            labelId="metodo-pontuacao-label"
+            id="metodo-pontuacao"
+            value={metodoPontuacao}
+            label="Método de Pontuação"
+            onChange={(e) => {
+              setMetodoPontuacao(e.target.value);
+              if (errors.metodo_pontuacao) {
+                setErrors({...errors, metodo_pontuacao: undefined});
+              }
+            }}
+          >
+            <MenuItem value="soma_item">Soma dos Itens</MenuItem>
+            <MenuItem value="qualitativo">Qualitativo</MenuItem>
+            <MenuItem value="moda">Moda</MenuItem>
+            <MenuItem value="media">Média</MenuItem>
+            <MenuItem value="formula_anterior">Fórmula Anterior</MenuItem>
+          </Select>
+          {errors.metodo_pontuacao && <FormHelperText>{errors.metodo_pontuacao}</FormHelperText>}
         </FormControl>
 
         <RenderAlternativas
@@ -158,7 +190,6 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
             console.log("Alternativas:", alternativas);
           }}
           alternativas={initialData ? initialData.alternativas : []}
-
         />
 
         <Box sx={{ display: "flex", justifyContent: "space-around", gap: 1, mt: 3 }}>
@@ -173,8 +204,5 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
     </Modal>
   );
 };
-
-
-
 
 export default PerguntaModal;

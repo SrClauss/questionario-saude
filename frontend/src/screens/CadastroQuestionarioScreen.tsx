@@ -1,50 +1,53 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Accordion,
   Box,
   Divider,
   IconButton,
   Tooltip,
   Typography,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import AdminLayout from "../layouts/AdminLayout";
 import {
   Sessao,
-  Pergunta,
-  Alternativa,
   Questionario,
-  FonteBibliografica,
 } from "../types/questionario";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import QuestionarioInfoCard from "../components/QuestionarioInfoCard";
 import QuestionarioForm from "../components/QuestionarioForm";
-import {
-  AddCircle,
-  AddCircleSharp,
-  AddRounded,
-  PlusOneOutlined,
-} from "@mui/icons-material";
+import { AddCircleSharp } from "@mui/icons-material";
 import SessaoInfoCard from "../components/SessoesInfoCard";
 import SessaoModal from "../modals/ModalsCadastroQuestionario/SessaoModal";
+import DeleteModal from "../modals/DeleteDialog";
 
 export default function CadastroQuestionarioScreen() {
-  const { id } = useParams<{ id: string }>();
+  const { id: urlId } = useParams<{ id: string }>();
+  const [questionarioId, setQuestionarioId] = useState<string | undefined>(urlId);
   const [questionario, setQuestionario] = useState<Questionario | null>(null);
   const [isViewMode, setIsViewMode] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem("@App:token");
 
-  // Estado para controlar o modal de edição de sessão
   const [isSessaoModalOpen, setIsSessaoModalOpen] = useState(false);
   const [selectedSessao, setSelectedSessao] = useState<Sessao | null>(null);
+  const [isNewSessao, setIsNewSessao] = useState(false);
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [sessaoToDelete, setSessaoToDelete] = useState<string | null>(null);
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "warning" | "info">("success");
 
   const handleSave = async (data: Questionario) => {
     try {
-      const url = id
-        ? `${backendUrl}/questionario/${id}`
+      const url = urlId
+        ? `${backendUrl}/questionario/${urlId}`
         : `${backendUrl}/questionario/`;
-      const method = id ? "PUT" : "POST";
+      const method = urlId ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method: method,
@@ -57,19 +60,29 @@ export default function CadastroQuestionarioScreen() {
 
       if (!response.ok) {
         throw new Error(
-          `Erro ao ${id ? "atualizar" : "criar"} questionário: ${
+          `Erro ao ${urlId ? "atualizar" : "criar"} questionário: ${
             response.status
           }`
         );
       }
 
       const savedQuestionario = await response.json();
-      // Aqui está a correção: mescla os dados retornados com o questionario existente
-      setQuestionario({ ...questionario, ...savedQuestionario });
+      setQuestionario(savedQuestionario);
       setIsViewMode(true);
+
+      if (!urlId) {
+        setQuestionarioId(savedQuestionario.id);
+        navigate(`/cadastro-questionario/${savedQuestionario.id}`, { replace: true });
+
+        setSnackbarMessage(`Questionário "${savedQuestionario.titulo}" criado com sucesso!`);
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true);
+      }
     } catch (error: any) {
       console.error("Erro ao salvar questionário:", error);
-      // Aqui você pode adicionar uma lógica para exibir uma mensagem de erro ao usuário
+      setSnackbarMessage(`Erro ao salvar questionário: ${error.message}`);
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
     }
   };
 
@@ -106,69 +119,227 @@ export default function CadastroQuestionarioScreen() {
     };
   };
 
-  useEffect(() => {
-    setIsViewMode(!!id);
+  const fetchQuestionarioDetalhado = async () => {
+    if (!questionarioId) return;
+    try {
+      const url = `${backendUrl}/questionario/detailed/${questionarioId}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (!id) return;
-
-    const fetchQuestionario = async () => {
-      try {
-        const url = `${backendUrl}/questionario/detailed/${id}`;
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar questionário");
-        }
-
-        const data = await response.json();
-        setQuestionario(data);
-      } catch (error) {
-        console.error("Erro:", error);
-        setIsViewMode(false);
+      if (!response.ok) {
+        throw new Error("Erro ao buscar questionário detalhado");
       }
-    };
 
-    fetchQuestionario();
-  }, [id, backendUrl, token]);
+      const data = await response.json();
+      setQuestionario(data);
+    } catch (error) {
+      console.error("Erro:", error);
+    }
+  };
 
-  // Funções para controlar o modal de edição de sessão
+  useEffect(() => {
+    setIsViewMode(!!urlId);
+    setQuestionarioId(urlId);
+
+    if (!urlId) return;
+
+    fetchQuestionarioDetalhado();
+  }, [urlId, backendUrl, token]);
+
   const handleOpenSessaoModal = (sessao: Sessao) => {
     setSelectedSessao(sessao);
+    setIsNewSessao(false);
+    setIsSessaoModalOpen(true);
+  };
+
+  const handleOpenNewSessaoModal = () => {
+    setSelectedSessao(null);
+    setIsNewSessao(true);
     setIsSessaoModalOpen(true);
   };
 
   const handleCloseSessaoModal = () => {
     setIsSessaoModalOpen(false);
     setSelectedSessao(null);
+    setIsNewSessao(false);
   };
 
-  // Função para salvar as alterações na sessão
-  const handleSaveSessao = (sessaoAtualizada: { titulo: string; descricao?: string | undefined; }) => {
-    // Lógica para atualizar a sessão no estado do questionário
-    const updatedSessoes = questionario?.sessoes?.map(sessao =>
-      sessao.id === selectedSessao?.id
-        ? { ...sessao, titulo: sessaoAtualizada.titulo, descricao: sessaoAtualizada.descricao }
-        : sessao
-    ) || [];
+  const handleSaveSessao = async (sessaoData: {
+    titulo: string;
+    descricao?: string;
+  }) => {
+    if (isNewSessao) {
+      try {
+        if (!questionarioId) {
+          setSnackbarMessage("Erro: Você precisa salvar o questionário antes de adicionar sessões.");
+          setSnackbarSeverity("error");
+          setOpenSnackbar(true);
+          return;
+        }
 
-    setQuestionario(prevQuestionario => ({
-      ...prevQuestionario,
-      sessoes: updatedSessoes,
-    } as Questionario));
+        const novaOrdem = (questionario?.sessoes?.length || 0) + 1;
 
-    // Fechar o modal
+        const response = await fetch(`${backendUrl}/sessoes/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            titulo: sessaoData.titulo,
+            descricao: sessaoData.descricao,
+            questionario_id: questionarioId,
+            ordem: novaOrdem,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao criar sessão: ${response.status}`);
+        }
+
+        setSnackbarMessage(`Sessão "${sessaoData.titulo}" criada com sucesso!`);
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true);
+
+        fetchQuestionarioDetalhado();
+      } catch (error) {
+        console.error("Erro ao criar sessão:", error);
+        setSnackbarMessage(`Erro ao criar sessão: ${error}`);
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      }
+    } else {
+      try {
+        if (!selectedSessao?.id) return;
+
+        // Obter o questionario_id correto
+        const questionarioIdToUse = selectedSessao.questionario_id || questionarioId;
+        
+        if (!questionarioIdToUse) {
+          setSnackbarMessage("Erro: ID do questionário não encontrado");
+          setSnackbarSeverity("error");
+          setOpenSnackbar(true);
+          return;
+        }
+
+        const response = await fetch(`${backendUrl}/sessoes/${selectedSessao.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            titulo: sessaoData.titulo,
+            descricao: sessaoData.descricao,
+            questionario_id: questionarioIdToUse, // Adicionado o questionario_id
+            ordem: selectedSessao.ordem || 0  // Adicione a ordem existente da sessão
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao atualizar sessão: ${response.status}`);
+        }
+        
+        // Atualiza o estado local
+        const updatedSessoes = questionario?.sessoes?.map((sessao) =>
+          sessao.id === selectedSessao?.id
+            ? { ...sessao, titulo: sessaoData.titulo, descricao: sessaoData.descricao }
+            : sessao
+        ) || [];
+
+        setQuestionario((prevQuestionario) => ({
+          ...prevQuestionario,
+          sessoes: updatedSessoes,
+        } as Questionario));
+        
+        // Exibe mensagem de sucesso
+        setSnackbarMessage(`Sessão "${sessaoData.titulo}" atualizada com sucesso!`);
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true);
+        
+      } catch (error: any) {
+        console.error("Erro ao atualizar sessão:", error);
+        
+        // Exibe mensagem de erro
+        setSnackbarMessage(`Erro ao atualizar sessão: ${error.message}`);
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      }
+    }
+
     handleCloseSessaoModal();
+  };
+
+  const handleConfirmDeleteSessao = (sessaoId: string) => {
+    setSessaoToDelete(sessaoId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleCancelDelete = () => {
+    setSessaoToDelete(null);
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleDeleteSessao = async () => {
+    try {
+      if (!sessaoToDelete) return;
+
+      const sessaoTitle = questionario?.sessoes?.find(s => s.id === sessaoToDelete)?.titulo || "Sessão";
+
+      const response = await fetch(`${backendUrl}/sessoes/${sessaoToDelete}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao deletar sessão: ${response.status}`);
+      }
+
+      setQuestionario(prevQuestionario => {
+        if (!prevQuestionario) return null;
+
+        return {
+          ...prevQuestionario,
+          sessoes: prevQuestionario.sessoes.filter(sessao => sessao.id !== sessaoToDelete)
+        };
+      });
+
+      setSnackbarMessage(`A sessão "${sessaoTitle}" foi excluída com sucesso!`);
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+
+      setIsDeleteDialogOpen(false);
+      setSessaoToDelete(null);
+
+    } catch (error) {
+      console.error("Erro ao deletar sessão:", error);
+
+      setSnackbarMessage(`Erro ao excluir sessão: ${error}`);
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+
+      setIsDeleteDialogOpen(false);
+      setSessaoToDelete(null);
+    }
+  };
+
+  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
   };
 
   return (
     <AdminLayout>
-      
       <Box
         sx={{
           maxWidth: "100vh",
@@ -176,12 +347,12 @@ export default function CadastroQuestionarioScreen() {
           padding: { xs: "0", md: "auto" },
         }}
       >
-      <Box sx={{ display: "flex", alignItems: "center" , marginBottom: 2 }}>
-        <Typography variant="h5">Questionario</Typography>
-        <Box sx={{ width: "100%" }}>
-          <Divider sx={{marginLeft: 1}} />
+        <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
+          <Typography variant="h5">Questionario</Typography>
+          <Box sx={{ width: "100%" }}>
+            <Divider sx={{ marginLeft: 1 }} />
+          </Box>
         </Box>
-      </Box>
         {isViewMode && questionario ? (
           <QuestionarioInfoCard
             questionario={questionario}
@@ -193,49 +364,61 @@ export default function CadastroQuestionarioScreen() {
             onSave={handleSave}
           />
         )}
-        <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2}}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="h5">
               Sessões
             </Typography>
-            <Box sx={{width: "100%", marginX: 2}}>
-              <Divider/>
+            <Box sx={{ width: "100%", marginX: 2 }}>
+              <Divider />
             </Box>
-       
             <Tooltip title="Adicionar nova sessão">
-              <IconButton onClick={() => console.log("Adicionar nova sessão")}>
+              <IconButton onClick={handleOpenNewSessaoModal}>
                 <AddCircleSharp color="info" />
               </IconButton>
             </Tooltip>
           </Box>
-        {questionario &&
-          questionario.sessoes &&
-          questionario.sessoes.length > 0 &&
-          questionario.sessoes.map((sessao: Sessao) => (
-            <SessaoInfoCard
-              key={sessao.id}
-              sessao={sessao}
-              onAdd={() => {
-                console.log("Adicionar nova sessão");
-              }}
-              onDelete={() => {
-                console.log("Deletar sessão");
-              }}
-              onEdit={(sessao: Sessao) => {
-                handleOpenSessaoModal(sessao);
-              }}
-            />
-          ))}
-          </Box>
+          {questionario &&
+            questionario.sessoes &&
+            questionario.sessoes.length > 0 &&
+            questionario.sessoes.map((sessao: Sessao) => (
+              <SessaoInfoCard
+                key={sessao.id}
+                sessao={sessao}
+                onDelete={() => handleConfirmDeleteSessao(sessao.id)}
+                onEdit={(sessao: Sessao) => {
+                  handleOpenSessaoModal(sessao);
+                }}
+                onUpdate={fetchQuestionarioDetalhado}
+              />
+            ))}
+        </Box>
       </Box>
 
-      {/* Modal de edição de sessão */}
       <SessaoModal
         open={isSessaoModalOpen}
         onClose={handleCloseSessaoModal}
         onSave={handleSaveSessao}
         initialData={selectedSessao || undefined}
       />
+
+      <DeleteModal
+        open={isDeleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleDeleteSessao}
+        itemName={questionario?.sessoes?.find(s => s.id === sessaoToDelete)?.titulo || "esta sessão"}
+      />
+      
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </AdminLayout>
   );
 }

@@ -5,6 +5,7 @@ export interface FonteBibliografica {
   editora?: string; // Editora é opcional
   local?: string; // Local é opcional
 }
+
 export interface Alternativa {
   id?: string;
   pergunta_id: string;
@@ -13,6 +14,18 @@ export interface Alternativa {
   ordem: number;
   created_at?: string;
   updated_at?: string;
+}
+
+// Nova interface para a pergunta condicional
+export interface PerguntaCondicional {
+  id: string;
+  texto: string;
+}
+
+// Nova interface para as respostas condicionais
+export interface RespostaCondicional {
+  id: string;
+  texto: string;
 }
 
 export interface Pergunta {
@@ -34,6 +47,8 @@ export interface Sessao {
   titulo: string;
   descricao?: string;
   ordem: number;
+  pergunta_condicional?: PerguntaCondicional; // Campo opcional para a pergunta condicional
+  respostas_condicionais?: RespostaCondicional[]; // Campo opcional para as respostas condicionais
   created_at: string;
   updated_at: string;
   perguntas: Pergunta[];

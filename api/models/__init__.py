@@ -262,8 +262,8 @@ class Sessao(db.Model):  # Alterado: Base -> db.Model
         titulo (String): Título da sessão.
         descricao (Text): Descrição da sessão.
         ordem (Integer): Ordem da sessão dentro do questionário.
-        pergunta_condicional_id (String): Chave estrangeira para a pergunta condicional (se aplicável).
-        resposta_condicional (String): Resposta condicional (se aplicável).
+        pergunta_condicional (JSON): JSON contendo o id e texto da pergunta condicional.
+        respostas_condicionais (JSON): JSON contendo array de IDs e textos de alternativas que ativam esta sessão.
         created_at (DateTime): Timestamp de criação.
         updated_at (DateTime): Timestamp da última atualização.
 
@@ -278,6 +278,8 @@ class Sessao(db.Model):  # Alterado: Base -> db.Model
     titulo = Column(String(100), nullable=False)
     descricao = Column(Text)
     ordem = Column(Integer, nullable=False)
+    pergunta_condicional = Column(JSON, nullable=True)  # JSON com id e texto da pergunta condicional
+    respostas_condicionais = Column(JSON, nullable=True)  # JSON com array de alternativas que ativam esta sessão
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -303,6 +305,8 @@ class Sessao(db.Model):  # Alterado: Base -> db.Model
             'titulo': self.titulo,
             'descricao': self.descricao,
             'ordem': self.ordem,
+            'pergunta_condicional': self.pergunta_condicional,  # Adicionado ao JSON
+            'respostas_condicionais': self.respostas_condicionais,  # Adicionado ao JSON
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
