@@ -167,6 +167,11 @@ def  get_pergunta_detailed(id):
 @perguntas_bp.route('/<id>/batch', methods=['POST'])
 @token_required(roles=['admin', 'profissional_saude'])
 def create_batch_perguntas(id):
+    
+
+
+
+
     """
     Cria várias perguntas de uma só vez com inserção em batch.
     Exemplo de payload:

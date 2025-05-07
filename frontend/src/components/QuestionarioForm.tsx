@@ -36,8 +36,7 @@ const QuestionarioForm: React.FC<QuestionarioFormProps> = ({ initialData, onSave
       updated_at: new Date().toISOString(), // Default to current timestamp
       sessoes: [], // Default to an empty array
     };
-    // Aqui você pode adicionar a lógica para enviar os dados do formulário para o backend
-    console.log('Dados do formulário:', data);
+    
     await onSave(data); // Chama a função onSave assíncrona
   };
 

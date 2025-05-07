@@ -13,10 +13,11 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
-import { AddCircle, AutoAwesome, Delete } from '@mui/icons-material';
+import { AddCircle, AutoAwesome, Delete, PostAdd } from '@mui/icons-material';
 import PerguntaInfoCard from './PerguntaInfoCard';
 import PerguntaModal from '../modals/ModalsCadastroQuestionario/PerguntaModal';
 import PerguntasEmLoteModal, { PerguntaData } from '../modals/ModalsCadastroQuestionario/PerguntasEmLoteModal';
+import AlternativasLoteModal, { AlternativasLotePayload } from '../modals/ModalsCadastroQuestionario/AlternativasLoteModal';
 import { Sessao, Pergunta } from '../types/questionario';
 
 interface SessaoInfoCardProps {
@@ -26,13 +27,13 @@ interface SessaoInfoCardProps {
   onUpdate: () => void; // callback para atualizar o questionário detalhado (pelo componente pai)
 }
 
-const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEdit, onUpdate }) => {
+const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdit, onUpdate }) => {
   const [isPerguntaModalOpen, setIsPerguntaModalOpen] = React.useState(false);
   const [selectedPergunta, setSelectedPergunta] = React.useState<Pergunta | null>(null);
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState('');
   const [openBatchModal, setOpenBatchModal] = React.useState(false);
-
+  const [openAlternativasModal, setOpenAlternativasModal] = React.useState(false);
   // Abre o modal para editar a pergunta
   const handleOpenPerguntaModal = (e: React.MouseEvent<HTMLButtonElement>, pergunta: Pergunta) => {
     e.stopPropagation();
@@ -49,13 +50,18 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEd
     setIsPerguntaModalOpen(true);
   };
 
-  // Salva a pergunta (cria ou atualiza)
-  const handleSavePergunta = async (perguntaAtualizada: { texto: string; tipo_resposta: string; }) => {
+  const handleSavePergunta = async (perguntaAtualizada: { 
+    texto: string; 
+    tipo_resposta: string; 
+    metodo_pontuacao: string;
+    alternativas?: { id?: string; texto: string; valor: number; ordem: number }[];
+  }) => {
     const token = localStorage.getItem('@App:token');
-    if (selectedPergunta?.id) {
-      // Atualiza pergunta existente
-      try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas/${selectedPergunta.id}`, {
+    let questionResponse;
+    try {
+      if (selectedPergunta?.id) {
+        // Atualiza pergunta existente
+        questionResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas/${selectedPergunta.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -64,25 +70,14 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEd
           body: JSON.stringify({
             texto: perguntaAtualizada.texto,
             tipo_resposta: perguntaAtualizada.tipo_resposta,
+            metodo_pontuacao: perguntaAtualizada.metodo_pontuacao,
+            alternativas: perguntaAtualizada.alternativas,
             sessao_id: sessao.id,
           }),
         });
-        if (response.ok) {
-          setSnackbarMessage("Pergunta atualizada com sucesso");
-          setOpenSnackbar(true);
-        } else {
-          const data = await response.json();
-          setSnackbarMessage(`Erro ao atualizar pergunta: ${data.message || "Erro desconhecido"}`);
-          setOpenSnackbar(true);
-        }
-      } catch (error) {
-        setSnackbarMessage(`Erro na requisição de atualização: ${error}`);
-        setOpenSnackbar(true);
-      }
-    } else {
-      // Cria nova pergunta
-      try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas/`, {
+      } else {
+        // Cria nova pergunta
+        questionResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -91,26 +86,48 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEd
           body: JSON.stringify({
             texto: perguntaAtualizada.texto,
             tipo_resposta: perguntaAtualizada.tipo_resposta,
+            metodo_pontuacao: perguntaAtualizada.metodo_pontuacao,
+            alternativas: perguntaAtualizada.alternativas,
             sessao_id: sessao.id,
           }),
         });
-        if (response.ok) {
-          setSnackbarMessage("Pergunta criada com sucesso");
-          setOpenSnackbar(true);
+      }
+      
+      if (questionResponse.ok) {
+        // Após salvar a pergunta, se houver alternativas, atualiza elas em batch
+        if (perguntaAtualizada.alternativas && perguntaAtualizada.alternativas.length > 0) {
+          const altResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/alternativas/batch`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(perguntaAtualizada.alternativas),
+          });
+          if (!altResponse.ok) {
+            const altData = await altResponse.json();
+            setSnackbarMessage(`Pergunta salva, mas erro ao atualizar alternativas: ${altData.error || "Erro desconhecido"}`);
+            setOpenSnackbar(true);
+          } else {
+            setSnackbarMessage("Pergunta e alternativas atualizadas com sucesso");
+            setOpenSnackbar(true);
+          }
         } else {
-          const data = await response.json();
-          setSnackbarMessage(`Erro ao criar pergunta: ${data.message || "Erro desconhecido"}`);
+          setSnackbarMessage(selectedPergunta ? "Pergunta atualizada com sucesso" : "Pergunta criada com sucesso");
           setOpenSnackbar(true);
         }
-      } catch (error) {
-        setSnackbarMessage(`Erro na requisição de criação: ${error}`);
+      } else {
+        const data = await questionResponse.json();
+        setSnackbarMessage(`Erro ao salvar pergunta: ${data.message || "Erro desconhecido"}`);
         setOpenSnackbar(true);
       }
+    } catch (error) {
+      setSnackbarMessage(`Erro na requisição: ${error}`);
+      setOpenSnackbar(true);
     }
     onUpdate();
     handleClosePerguntaModal();
   };
-
   // Fecha o modal de pergunta
   const handleClosePerguntaModal = () => {
     setIsPerguntaModalOpen(false);
@@ -187,7 +204,36 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEd
     }
     setOpenBatchModal(false);
   };
-
+  // Dentro do componente SessaoInfoCard.tsx
+  const handleSaveBatchAlternativas = async (payload: AlternativasLotePayload) => {
+    const token = localStorage.getItem('@App:token');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/sessoes/${sessao.id}/alternativas-lote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        // Envia o payload completo (tipo_resposta e alternativas)
+        body: JSON.stringify(payload),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        setSnackbarMessage(data.message || "Alternativas atualizadas com sucesso.");
+        setOpenSnackbar(true);
+        onUpdate();
+      } else {
+        const errorData = await response.json();
+        setSnackbarMessage(`Erro: ${errorData.error || errorData.message || "Erro desconhecido"}`);
+        setOpenSnackbar(true);
+      }
+    } catch (error: any) {
+      setSnackbarMessage(`Falha na conexão: ${error}`);
+      setOpenSnackbar(true);
+    }
+    setOpenAlternativasModal(false);
+  };
   const handleCloseSnackbar = (e?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
     setOpenSnackbar(false);
@@ -205,9 +251,14 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEd
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Typography variant="h6">{sessao.titulo}</Typography>
           <Box>
+            <Tooltip title="Alterar Alternativas em Lote">
+              <IconButton onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpenAlternativasModal(true); }}>
+                <AutoAwesome color="info" />
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Inserir Perguntas em Lote">
               <IconButton onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleOpenBatchModal(e); }}>
-                <AutoAwesome color="primary" />
+                <PostAdd color="info" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Editar Sessão">
@@ -285,7 +336,7 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEd
         <PerguntaModal
           open={isPerguntaModalOpen}
           onClose={handleClosePerguntaModal}
-          onSave={handleSavePergunta}
+          onSave={(e)=>{handleSavePergunta(e);console.log("cawa", e)}}
           initialData={selectedPergunta || undefined}
         />
         <PerguntasEmLoteModal
@@ -294,6 +345,15 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao,  onDelete, onEd
           onSave={handleSaveBatchPerguntas}
           sessaoId={sessao.id}
           
+        />
+        <AlternativasLoteModal
+          open={openAlternativasModal}
+          onClose={() => {setOpenAlternativasModal(false); }}
+          onSave={(e) => {
+            handleSaveBatchAlternativas(e);
+            setOpenAlternativasModal(false);
+          }}
+          sessaoId={sessao.id}
         />
       </AccordionDetails>
       <Snackbar

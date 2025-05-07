@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-    Modal,
-    Box,
-    Typography,
-    TextField,
-    Button,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    FormHelperText,
-    Alert,
+  Modal,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+  Alert,
 } from "@mui/material";
 import { Alternativa, Pergunta } from "../../types/questionario";
 import RenderAlternativas from "../../components/AlternativaForm";
@@ -18,7 +18,8 @@ import RenderAlternativas from "../../components/AlternativaForm";
 interface PerguntaData {
   texto: string;
   tipo_resposta: string;
-  metodo_pontuacao: string; // Adicionado o campo metodo_pontuacao
+  metodo_pontuacao: string;
+  alternativas?: Alternativa[];
 }
 
 interface PerguntaModalProps {
@@ -29,33 +30,43 @@ interface PerguntaModalProps {
 }
 
 const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, initialData }) => {
-  const [texto, setTexto] = useState(initialData?.texto || "");
-  const [tipoResposta, setTipoResposta] = useState(initialData?.tipo_resposta || "texto");
-  const [metodoPontuacao, setMetodoPontuacao] = useState(initialData?.metodo_pontuacao || "soma_item"); // Novo estado
+  const [texto, setTexto] = useState("");
+  const [tipoResposta, setTipoResposta] = useState("texto");
+  const [metodoPontuacao, setMetodoPontuacao] = useState("soma_item");
+  const [alternativas, setAlternativas] = useState<Alternativa[]>([]);
   const [errors, setErrors] = useState<{ texto?: string, tipo_resposta?: string, metodo_pontuacao?: string }>({});
   const [showValidationAlert, setShowValidationAlert] = useState(false);
 
+  // Função estável com useCallback para evitar renderizações desnecessárias
+  const handleSetAlternativas = useCallback((alts: Alternativa[]) => {
+    setAlternativas(alts);
+  }, []);
+
+  // Effect que carrega os dados iniciais apenas quando necessário
   useEffect(() => {
-    if (initialData) {
-      setTexto(initialData.texto || "");
-      setTipoResposta(initialData.tipo_resposta || "texto");
-      setMetodoPontuacao(initialData.metodo_pontuacao || "soma_item"); // Inicializa com o valor existente ou padrão
-      setErrors({});
-      setShowValidationAlert(false);
-    } else {
-      setTexto("");
-      setTipoResposta("texto");
-      setMetodoPontuacao("soma_item"); // Valor padrão para nova pergunta
+    if (open) {
+      if (initialData) {
+        setTexto(initialData.texto || "");
+        setTipoResposta(initialData.tipo_resposta || "texto");
+        setMetodoPontuacao(initialData.metodo_pontuacao || "soma_item");
+        // Cópia profunda das alternativas para evitar referências compartilhadas
+        setAlternativas(initialData.alternativas ? [...initialData.alternativas] : []);
+      } else {
+        // Reset apenas se não tiver dados iniciais
+        setTexto("");
+        setTipoResposta("texto");
+        setMetodoPontuacao("soma_item");
+        setAlternativas([]);
+      }
       setErrors({});
       setShowValidationAlert(false);
     }
-  }, [initialData, open]);
+  }, [initialData?.id, open]); // Dependência no ID para reduzir atualizações
 
   const validateForm = (): boolean => {
     const newErrors: { texto?: string, tipo_resposta?: string, metodo_pontuacao?: string } = {};
     let isValid = true;
 
-    // Validação existente...
     if (!texto.trim()) {
       newErrors.texto = "O texto da pergunta é obrigatório";
       isValid = false;
@@ -72,7 +83,6 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
       isValid = false;
     }
 
-    // Nova validação para metodo_pontuacao
     if (!metodoPontuacao) {
       newErrors.metodo_pontuacao = "O método de pontuação é obrigatório";
       isValid = false;
@@ -85,12 +95,12 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
 
   const handleSave = () => {
     if (validateForm()) {
-      onSave({ texto, tipo_resposta: tipoResposta, metodo_pontuacao: metodoPontuacao });
-      setTexto("");
-      setTipoResposta("texto");
-      setMetodoPontuacao("soma_item");
-      setErrors({});
-      setShowValidationAlert(false);
+      onSave({ 
+        texto, 
+        tipo_resposta: tipoResposta, 
+        metodo_pontuacao: metodoPontuacao, 
+        alternativas 
+      });
       onClose();
     }
   };
@@ -126,7 +136,7 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
           onChange={(e) => {
             setTexto(e.target.value);
             if (errors.texto) {
-              setErrors({...errors, texto: undefined});
+              setErrors({ ...errors, texto: undefined });
             }
           }}
           margin="normal"
@@ -145,7 +155,7 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
             onChange={(e) => {
               setTipoResposta(e.target.value);
               if (errors.tipo_resposta) {
-                setErrors({...errors, tipo_resposta: undefined});
+                setErrors({ ...errors, tipo_resposta: undefined });
               }
             }}
           >
@@ -159,7 +169,6 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
           {errors.tipo_resposta && <FormHelperText>{errors.tipo_resposta}</FormHelperText>}
         </FormControl>
 
-        {/* Novo campo para método de pontuação */}
         <FormControl fullWidth margin="normal" error={!!errors.metodo_pontuacao} required>
           <InputLabel id="metodo-pontuacao-label">Método de Pontuação</InputLabel>
           <Select
@@ -170,7 +179,7 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
             onChange={(e) => {
               setMetodoPontuacao(e.target.value);
               if (errors.metodo_pontuacao) {
-                setErrors({...errors, metodo_pontuacao: undefined});
+                setErrors({ ...errors, metodo_pontuacao: undefined });
               }
             }}
           >
@@ -186,10 +195,8 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
         <RenderAlternativas
           tipo_resposta={tipoResposta}
           pergunta_id={initialData ? initialData.id : ""}
-          onSetAlternativas={(alternativas: Alternativa[]) => {
-            console.log("Alternativas:", alternativas);
-          }}
-          alternativas={initialData ? initialData.alternativas : []}
+          onSetAlternativas={handleSetAlternativas}
+          alternativas={alternativas}
         />
 
         <Box sx={{ display: "flex", justifyContent: "space-around", gap: 1, mt: 3 }}>

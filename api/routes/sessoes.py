@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import Pergunta, Sessao
+from models import Pergunta, Sessao, Alternativa  # Importe o modelo Alternativa
 from extensions import db
 from sqlalchemy.orm import joinedload
 from utils.auth import token_required
@@ -75,6 +75,7 @@ def update_sessao(id):
     Atualiza uma sessão existente.
     """
     data = request.get_json()
+    print(f"Dados recebidos para atualização: {data}")
     try:
         sessao = Sessao.query.get(id)
         if not sessao:
@@ -84,6 +85,8 @@ def update_sessao(id):
         sessao.titulo = data['titulo']
         sessao.descricao = data.get('descricao', sessao.descricao)
         sessao.ordem = data['ordem']
+        sessao.pergunta_condicional = data.get('pergunta_condicional', sessao.pergunta_condicional)
+        sessao.respostas_condicionais = data.get('respostas_condicionais', sessao.respostas_condicionais)
 
         db.session.commit()
         return jsonify(sessao.to_json()), 200
@@ -195,3 +198,57 @@ def get_sessao_detailed(id):
         print(f"Erro ao buscar sessão detalhada: {e}")
         return jsonify({'error': str(e)}), 500
 
+@sessoes_bp.route('/<sessao_id>/alternativas-lote', methods=['POST'])
+@token_required(roles=['admin', 'profissional_saude'])
+def update_alternativas_lote_for_sessao(sessao_id):
+    """
+    Recebe um payload com tipo_resposta e um array de alternativas. Atualiza o tipo_resposta
+    de todas as perguntas da sessão e substitui as alternativas existentes pelas novas.
+    Payload esperado:
+    {
+        "tipo_resposta": "booleano",
+        "alternativas": [
+            {"texto": "Sim", "valor": 1, "ordem": 1},
+            {"texto": "Não", "valor": 0, "ordem": 2}
+        ]
+    }
+    """
+    data = request.get_json()
+    print(data)
+
+    if not isinstance(data, dict) or 'tipo_resposta' not in data or 'alternativas' not in data:
+        return jsonify({'error': 'Payload inválido. Esperado: {"tipo_resposta": string, "alternativas": list}'}), 400
+
+    tipo_resposta = data['tipo_resposta']
+    alternativas = data['alternativas']
+
+    if not isinstance(alternativas, list):
+        return jsonify({'error': 'A lista de alternativas deve ser um array.'}), 400
+
+    try:
+        # Busca a sessão com suas perguntas
+        sessao = Sessao.query.options(db.joinedload(Sessao.perguntas)).get(sessao_id)
+        if not sessao:
+            return jsonify({'error': 'Sessão não encontrada.'}), 404
+
+        # Atualiza o tipo_resposta de todas as perguntas da sessão
+        for pergunta in sessao.perguntas:
+            pergunta.tipo_resposta = tipo_resposta
+            # Remove as alternativas existentes
+            db.session.query(Alternativa).filter(Alternativa.pergunta_id == pergunta.id).delete()
+            # Adiciona as novas alternativas
+            for alt in alternativas:
+                nova_alternativa = Alternativa(
+                    texto=alt['texto'],
+                    valor=alt['valor'],
+                    ordem=alt['ordem'],
+                    pergunta_id=pergunta.id
+                )
+                db.session.add(nova_alternativa)
+
+        db.session.commit()
+        return jsonify({'message': f'Tipo de resposta das perguntas atualizado para "{tipo_resposta}" e alternativas atualizadas.'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

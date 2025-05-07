@@ -96,3 +96,46 @@ def delete_alternativa(id):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@alternativas_bp.route('/batch', methods=['PUT'])
+@token_required(roles=['admin', 'profissional_saude'])
+def update_alternativas_batch():
+    """
+    Atualiza uma lista de alternativas em batch sem uso de loop explícito.
+    O payload recebido pode conter campos extras (ex: created_at, updated_at)
+    que serão removidos. Exemplo de payload:
+    [
+        {
+            "id": "01JS0F7WVMS1033WG0HJ66FQ3A",
+            "pergunta_id": "01JS0F7WV8PN6YQA3P3WKEBNFE",
+            "texto": "Sim",
+            "valor": 10,
+            "ordem": 1,
+            "created_at": "2025-04-16T23:34:11.572450",
+            "updated_at": "2025-04-16T23:34:11.572450"
+        },
+        {
+            "id": "01JS0F7WVTTFMV2JH71ZCCVNTF",
+            "pergunta_id": "01JS0F7WV8PN6YQA3P3WKEBNFE",
+            "texto": "Não",
+            "valor": 0,
+            "ordem": 2,
+            "created_at": "2025-04-16T23:34:11.578455",
+            "updated_at": "2025-04-16T23:34:11.578455"
+        }
+    ]
+    """
+    data = request.get_json()
+    print(data)
+    if not isinstance(data, list):
+        return jsonify({'error': 'O payload deve ser uma lista de alternativas'}), 400
+
+    try:
+        # Filtra os campos permitidos pelo modelo: id, pergunta_id, texto, valor, ordem
+        allowed_fields = {"id", "pergunta_id", "texto", "valor", "ordem"}
+        mappings = [{ key: alt[key] for key in alt if key in allowed_fields } for alt in data ]
+        db.session.bulk_update_mappings(Alternativa, mappings)
+        db.session.commit()
+        return jsonify({'message': 'Alternativas atualizadas com sucesso'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400

@@ -8,6 +8,7 @@ import ProfissionalSaudeScreen from './screens/ProfissionalSaudeScreen'
 import ColaboradorScreen from './screens/ColaboradorScreen'
 import QuestionarioScreen from './screens/QuestionarioScreen'
 import CadastroQuestionarioScreen from './screens/CadastroQuestionarioScreen'
+import ConfirmPasswordScreen from './screens/ConfirmPasswordScreen'
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
             <Route path='/questionario' element ={<QuestionarioScreen />} />
             <Route path='/cadastro-questionario' element ={<CadastroQuestionarioScreen />} />
             <Route path='/cadastro-questionario/:id' element ={<CadastroQuestionarioScreen />} />
-
+            <Route path='/confirm-email/:token' element={<ConfirmPasswordScreen />} />
           </Routes>
       </ThemeProvider>
     </BrowserRouter>

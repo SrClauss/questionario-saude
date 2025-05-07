@@ -181,3 +181,28 @@ def get_profile_picture(user_id):
 
     except Exception as e:
         return jsonify({'message': f'Erro ao processar o arquivo: {str(e)}'}), 500
+
+@user_bp.route('/users/set_password', methods=['PUT'])
+def set_password():
+    """
+    Rota para definir a senha de um usuário.
+    """
+    data = request.get_json()
+    id = data.get('id')
+    password = data.get('password')
+    
+    
+    if not id or not password:
+        return jsonify({'error': 'ID e senha são obrigatórios'}), 400
+    user = User.query.get(id)
+    if not user:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    try:
+        user.set_password(password)
+        db.session.commit()
+        return jsonify({'message': 'Senha atualizada com sucesso'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+    

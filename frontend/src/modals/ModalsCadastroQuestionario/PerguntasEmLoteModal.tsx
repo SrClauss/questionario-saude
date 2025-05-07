@@ -130,17 +130,17 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
             <Box
                 sx={{
                     backgroundColor: 'white',
-                    width: { xs: '100%', sm: '80%', md: '60%' },
+                    width: { xs: '90%', sm: '80%', md: '60%' }, // Ajuste na largura
                     height: { xs: '100%', md: 'auto' },
                     maxHeight: { xs: '100vh', md: '80vh' },
-                    margin: { xs: 0, sm: 'auto' },
+                    margin: { xs: 'auto', sm: 'auto' }, // Centraliza o modal
                     mt: { xs: 0, sm: 4 },
-                    p: 3,
+                    p: { xs: 2, sm: 3 }, // Ajuste no padding
                     borderRadius: { xs: 0, md: 2 },
                     overflowY: 'auto'
                 }}
             >
-                <Typography variant="h6" sx={{ mb: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.2rem', md: '1.5rem' } }}> 
                     Criar Perguntas em Lote
                 </Typography>
 
@@ -206,6 +206,7 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                         key={idx}
                         sx={{
                             display: 'flex',
+                            flexDirection: { xs: 'column', sm: 'row' }, // Alinha os itens verticalmente em telas pequenas
                             alignItems: 'center',
                             gap: 2,
                             mb: 2,
@@ -219,6 +220,7 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                             value={pergunta.texto}
                             onChange={e => handleChangePerguntaTexto(idx, e.target.value)}
                             fullWidth
+                            sx={{ mb: { xs: 1, sm: 0 } }} // Adiciona margem inferior em telas pequenas
                         />
                         <IconButton color="error" onClick={() => handleRemovePergunta(idx)}>
                             <RemoveCircleOutline />
@@ -235,7 +237,7 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                     Adicionar Pergunta
                 </Button>
 
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}> 
                     <Button variant="outlined" onClick={onClose} fullWidth>
                         Cancelar
                     </Button>

@@ -16,6 +16,7 @@ import { Delete, InfoRounded, Add } from "@mui/icons-material";
 import SearchBar from "../components/SearchBar";
 import AdminLayout from "../layouts/AdminLayout";
 import { useNavigate } from "react-router-dom";
+import DeleteModal from "../modals/DeleteDialog";
 
 interface Questionario {
     id: string;
@@ -35,6 +36,22 @@ export default function QuestionarioScreen() {
     const handleSnackbarClose = () => {
         setSnackbar({ ...snackbar, open: false });
     };
+    interface deleteModalProps {
+        open: boolean;
+        onClose: () => void;
+        onConfirm: () => void;
+        itemName?: string; // Nome do item a ser deletado (opcional)
+        id?: string; // ID do item a ser deletado (opcional)
+    }
+
+    const [showDeleteModal, setShowDeleteModal] = useState<deleteModalProps>({
+        open: false,
+        onClose: () => {},
+        onConfirm: () => {},
+        itemName: "",
+        id: ""
+    });
+
 
     const handleFilter = (query: string) => {
         if (query.length < 3) return;
@@ -167,7 +184,13 @@ export default function QuestionarioScreen() {
                                 <Tooltip title="Delete">
                                     <IconButton
                                         color="error"
-                                        onClick={() => handleDelete(q.id)}
+                                        onClick={() => setShowDeleteModal({
+                                            open: true,
+                                            onClose: () => setShowDeleteModal({ ...showDeleteModal, open: false }),
+                                            onConfirm: () => handleDelete(q.id),
+                                            itemName: q.titulo,
+                                            id: q.id
+                                        })}
                                     >
                                         <Delete />
                                     </IconButton>
@@ -191,6 +214,15 @@ export default function QuestionarioScreen() {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+            <DeleteModal
+                open={showDeleteModal.open}
+                onClose={() => setShowDeleteModal({ ...showDeleteModal, open: false })}
+                onConfirm={() => {
+                    handleDelete(showDeleteModal.id || "");
+                    setShowDeleteModal({ ...showDeleteModal, open: false });
+                }}
+                itemName={showDeleteModal.itemName}
+            />
         </AdminLayout>
     );
 }

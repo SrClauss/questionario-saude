@@ -80,7 +80,7 @@ def register_paciente():
 
         # Geração do token
         token = jwt.encode(
-            {"user_id": user.id, 'exp': datetime.now() + timedelta(hours=24)},           
+            {"user_id": user.id, "nome": data["nome"], 'exp': datetime.now() + timedelta(hours=24)},           
             current_app.config['SECRET_KEY'],
             algorithm='HS256'
         )
