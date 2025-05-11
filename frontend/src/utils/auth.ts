@@ -4,7 +4,7 @@ interface TokenPayload {
   id: string
   email: string
   exp: number
-  role: 'admin' | 'profissional' | 'paciente' | 'colaborador'
+  role: 'admin' | 'profissional_saude' | 'paciente' | 'colaborador'
 }
 
 interface User {
@@ -67,7 +67,6 @@ export const auth = {
    */
   setToken(data: AuthResponse): void {
 
-    console.log('setToken', data)
     // Salva o token
     localStorage.setItem(TOKEN_KEY, data.user.token)
     
@@ -76,6 +75,8 @@ export const auth = {
     
     // Salva o perfil específico (colaborador, paciente ou profissional)
     const profile = data.colaborador || data.paciente || data.profissional_saude
+
+
     if (profile) {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
     }
@@ -150,6 +151,7 @@ export const auth = {
     }
 
     try {
+     
       return jwtDecode<TokenPayload>(token)
     } catch {
       return null

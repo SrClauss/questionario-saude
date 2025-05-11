@@ -6,7 +6,7 @@ import io
 from utils.auth import token_required
 
 from flask import Blueprint, request, jsonify
-from models import User
+from models import Colaborador, Paciente, ProfissionalSaude, User
 from extensions import db
 from utils.auth import token_required
 
@@ -28,7 +28,7 @@ def get_users():
     return jsonify([user.to_json() for user in users]), 200
 
 @user_bp.route('/users/<string:id>', methods=['GET'])
-@token_required(roles=['admin'])
+@token_required(roles=['admin', 'profissional_saude', 'colaborador'])
 def get_user(id):
     """
     Retorna um usuário pelo ID.
@@ -103,9 +103,14 @@ def login():
     """
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
-    paciente = User.query.filter_by(email=data['email'], role='paciente').first()
-    colaborador = User.query.filter_by(email=data['email'], role='colaborador').first()
-    profissional_saude = User.query.filter_by(email=data['email'], role='profissional_saude').first()
+    
+    print(user)
+    if user is None:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    print(user)
+    paciente = Paciente.query.filter_by(user_id=user.id).first()
+    colaborador = Colaborador.query.filter_by(user_id=user.id).first()
+    profissional_saude = ProfissionalSaude.query.filter_by(user_id=user.id).first()
     if user is None or not user.check_password(data['password']):
         return jsonify({'error': 'Credenciais inválidas'}), 401
     result = {
@@ -114,6 +119,7 @@ def login():
         'colaborador': colaborador.to_json() if colaborador else None,
         'profissional_saude': profissional_saude.to_json() if profissional_saude else None
     }
+    print(result)
     return jsonify(result), 200
 
 @user_bp.route('/<string:user_id>/upload', methods=['POST'])

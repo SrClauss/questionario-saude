@@ -9,7 +9,8 @@ import ColaboradorScreen from './screens/ColaboradorScreen'
 import QuestionarioScreen from './screens/QuestionarioScreen'
 import CadastroQuestionarioScreen from './screens/CadastroQuestionarioScreen'
 import ConfirmPasswordScreen from './screens/ConfirmPasswordScreen'
-
+import AplicacaoQuestionarioPacienteScreen from './screens/AplicacaoQuestionarioPacienteScreen'
+import AplicacaoPacienteQuestionario from './screens/AplicacaoPacienteQuestionarioScreen'
 function App() {
   return (
     <BrowserRouter>
@@ -25,6 +26,8 @@ function App() {
             <Route path='/cadastro-questionario' element ={<CadastroQuestionarioScreen />} />
             <Route path='/cadastro-questionario/:id' element ={<CadastroQuestionarioScreen />} />
             <Route path='/confirm-email/:token' element={<ConfirmPasswordScreen />} />
+            <Route path='/aplicacao-questionario/:id' element={<AplicacaoQuestionarioPacienteScreen />} />
+            <Route path='/aplicacao-paciente-questionario/:id' element={<AplicacaoPacienteQuestionario />} />
           </Routes>
       </ThemeProvider>
     </BrowserRouter>

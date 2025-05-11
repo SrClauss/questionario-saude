@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
-from models import BateriaTestes
+from models import BateriaTestes, ProfissionalSaude, Paciente, Questionario
 from extensions import db
 from datetime import datetime
 from utils.auth import token_required
-bateria_testes_bp = Blueprint('baterias_testes', __name__)
+from sqlalchemy import exc
+
+bateria_testes_bp = Blueprint('baterias_testes', 'baterias_testes')
 
 # Rota para listar todas as baterias de testes
 @bateria_testes_bp.route('', methods=['GET'])
@@ -109,7 +111,7 @@ def delete_bateria_teste(id):
 
 # Rota para listar baterias de testes por paciente
 @bateria_testes_bp.route('/paciente/<paciente_id>', methods=['GET'])
-@token_required(roles=['admin', 'profissional_saude'])
+@token_required(roles=['admin', 'profissional_saude', 'colaborador', 'paciente'])
 def get_baterias_by_paciente(paciente_id):
     """
     Lista todas as baterias de testes de um paciente específico.
@@ -146,3 +148,87 @@ def get_baterias_by_questionario(questionario_id):
     """
     baterias = BateriaTestes.query.filter_by(questionario_id=questionario_id).all()
     return jsonify([bateria.to_json() for bateria in baterias]), 200
+
+# Rota para salvar várias baterias de testes em lote
+@bateria_testes_bp.route('/batch_save', methods=['POST'])
+@token_required(roles=['admin', 'profissional_saude'])
+def batch_save_baterias_testes():
+    """
+    Salva várias baterias de testes em lote (bulk operation).
+    payload:
+    {
+        profissional_saude_id: ulid,
+        baterias: [
+            {
+                paciente_id: ulid,
+                colaborador_id: ulid,
+                questionario_id: ulid,
+                data_aplicacao: 'YYYY-MM-DD',
+                respostas: {},
+                observacoes: '',
+                is_completo: true
+            },
+            ...
+        ]
+    }
+    """
+    data = request.get_json()
+    baterias = []
+    
+    # Validar profissional_saude_id no payload principal
+    profissional_saude_id = data.get('profissional_saude_id')
+    if not profissional_saude_id:
+        return jsonify({'error': 'profissional_saude_id é obrigatório'}), 400
+    
+    try:
+        # Iterar sobre a lista de baterias, não sobre o objeto principal
+        for item in data.get('baterias', []):
+            
+            # Converte data_aplicacao para datetime.date
+            data_aplicacao = datetime.strptime(item['data_aplicacao'], '%Y-%m-%d').date()
+
+            bateria = BateriaTestes(
+                profissional_saude_id=profissional_saude_id,
+                paciente_id=item['paciente_id'],
+                colaborador_id=item.get('colaborador_id'),
+                questionario_id=item['questionario_id'],
+                data_aplicacao=data_aplicacao,
+                respostas=item.get('respostas'),
+                observacoes=item.get('observacoes'),
+                is_completo=item.get('is_completo', False)
+            )
+            
+            baterias.append(bateria)
+
+        db.session.bulk_save_objects(baterias)
+        db.session.commit()
+        return jsonify({'message': 'Baterias de testes salvas com sucesso'}), 201
+    except exc.SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({'error': f'Erro de valor: {str(e)}'}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+
+
+@bateria_testes_bp.route('/ensure_perfil_de_saude', methods=['POST'])
+@token_required(roles=['admin', 'profissional_saude', 'colaborador', 'paciente'])
+def ensure_perfil_de_saude():
+    """
+    Garante que o usuário tenha um perfil de saúde associado.
+    """
+    data = request.get_json()
+    user_id = data.get('user_id')
+    
+    if not user_id:
+        return jsonify({'error': 'user_id é obrigatório'}), 400
+    
+    paciente = Paciente.query.filter_by(user_id=user_id).first()
+    
+    perfil_saude = Questionario.query.filter_by(title='Perfil de Saúde').first()
+    if not perfil_saude:
+        return jsonify({'error': 'Perfil de Saúde não encontrado'}), 404

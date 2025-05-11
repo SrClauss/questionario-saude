@@ -64,6 +64,10 @@ export default function LoginScreen() {
                 setFeedback('Login realizado com sucesso!');
                 setFeedbackSeverity('success');
                 setOpenSnackbar(true);
+
+
+             
+            
                 auth.setToken(data);
                 setTimeout(() => {
                     navigate('/');

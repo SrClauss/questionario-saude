@@ -5,7 +5,7 @@ from utils.auth import token_required
 alternativas_bp = Blueprint('alternativas', __name__)
 
 @alternativas_bp.route('/', methods=['GET'])
-@alternativas_bp.route('/<int:page>/<int:per_page>/', methods=['GET'])
+@alternativas_bp.route('/<int:page>/<int:per_page>', methods=['GET'])
 @token_required(roles=['admin', 'profissional_saude'])
 def get_alternativas(page=1, per_page=10):
     """

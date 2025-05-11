@@ -16,6 +16,8 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
     
+    app.url_map.strict_slashes = False  # Permite rotas com e sem barra no final
+    
     CORS(app)  # Permite CORS para todas as rotas que começam com /backend
     # Configurações do aplicativo
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')

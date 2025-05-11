@@ -156,8 +156,8 @@ def get_colaborador_by_email(email):
         return jsonify(colaborador.to_json()), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-@colaborador_bp.route('/filter_by_name/<name>/', methods=['GET'])
-@colaborador_bp.route('/filter_by_name/<name>/<page>/<len>/', methods=['GET'])
+@colaborador_bp.route('/filter_by_name/<name>', methods=['GET'])
+@colaborador_bp.route('/filter_by_name/<name>/<page>/<len>', methods=['GET'])
 @token_required(roles=['admin', 'profissional_saude', 'colaborador'])
 def get_colaboradores_by_name(name, page=1, len=10):
     try:

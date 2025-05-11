@@ -4,12 +4,13 @@ import { auth } from '../utils/auth'
 
 interface ProtectedRouteProviderProps {
   children: ReactNode
-  allowed: ('admin' | 'profissional' | 'paciente' | 'colaborador')[]
+  allowed: ('admin' | 'profissional_saude' | 'paciente' | 'colaborador')[]
 }
 
 export function ProtectedRouteProvider({ children, allowed }: ProtectedRouteProviderProps) {
   const navigate = useNavigate()
   const userData = auth.getUserData()
+  
 
   // Verifica se tem token válido
   if (!auth.isValidToken()) {
@@ -19,6 +20,7 @@ export function ProtectedRouteProvider({ children, allowed }: ProtectedRouteProv
 
   // Verifica se o usuário tem role permitida
   if (!userData?.role || !allowed.includes(userData.role)) {
+    
     navigate('/unauthorized', { replace: true })
     return null
   }

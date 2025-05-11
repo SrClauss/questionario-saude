@@ -211,8 +211,8 @@ def get_questionario_detailed(id):
     
     
     
-@questionario_bp.route('/find_by_title_or_description/<string:search>/', methods=['GET'])
-@questionario_bp.route('/find_by_title_or_description/<string:search>/<int:page>/<int:len>/', methods=['GET'])
+@questionario_bp.route('/find_by_title_or_description/<string:search>', methods=['GET'])
+@questionario_bp.route('/find_by_title_or_description/<string:search>/<int:page>/<int:len>', methods=['GET'])
 @token_required(roles=['admin', 'profissional_saude'])
 def find_by_title_or_description(search, page=1, len=10):
     """
@@ -228,3 +228,31 @@ def find_by_title_or_description(search, page=1, len=10):
     except Exception as e:
         print(f"Erro ao buscar questionários: {e}")
         return jsonify({'error': str(e)}), 500
+    
+    
+    
+@questionario_bp.route('/number_of_queries/<string:id>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude', 'colaborador'])
+def number_of_queries(id):
+    """
+    Retorna o número de perguntas de um questionário específico.
+    """
+    try:
+        questionario = Questionario.query.get(id)
+        sessoes = Sessao.query.filter_by(questionario_id=id).all()
+        perguntas_number = 0
+        
+        
+        for sessao in sessoes:
+            perguntas = Pergunta.query.filter_by(sessao_id=sessao.id).all()
+            perguntas_number += len(perguntas)
+        return jsonify({
+            'questionario_id': questionario.id,
+            'questionario_titulo': questionario.titulo,
+            'number_of_questions': perguntas_number
+        }), 200
+    except Exception as e:
+        print(f"Erro ao contar perguntas: {e}")
+        return jsonify({'error': str(e)}), 500
+    
+        

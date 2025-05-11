@@ -209,8 +209,8 @@ def  get_profissional_saude_by_email(email):
     
 
 
-@profissional_saude_bp.route('/filter_by_name/<name>/', methods=['GET'])
-@profissional_saude_bp.route('/filter_by_name/<name>/<page>/<len>/', methods=['GET'])
+@profissional_saude_bp.route('/filter_by_name/<name>', methods=['GET'])
+@profissional_saude_bp.route('/filter_by_name/<name>/<page>/<len>', methods=['GET'])
 @token_required(roles=['admin'])
 def  get_profissionais_saude_by_name(name, page=1, len=10):
     
@@ -226,3 +226,5 @@ def  get_profissionais_saude_by_name(name, page=1, len=10):
         
         print(e)
         return jsonify({'error': str(e)}), 500
+    
+ 

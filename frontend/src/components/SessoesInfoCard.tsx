@@ -17,8 +17,21 @@ import { AddCircle, AutoAwesome, Delete, PostAdd } from '@mui/icons-material';
 import PerguntaInfoCard from './PerguntaInfoCard';
 import PerguntaModal from '../modals/ModalsCadastroQuestionario/PerguntaModal';
 import PerguntasEmLoteModal, { PerguntaData } from '../modals/ModalsCadastroQuestionario/PerguntasEmLoteModal';
-import AlternativasLoteModal, { AlternativasLotePayload } from '../modals/ModalsCadastroQuestionario/AlternativasLoteModal';
+import AlternativasLoteModal, {} from '../modals/ModalsCadastroQuestionario/AlternativasLoteModal';
 import { Sessao, Pergunta } from '../types/questionario';
+
+// Interfaces para tipagem
+interface BatchAlternativa {
+  id?: string;       // ID é opcional para novas alternativas
+  texto: string;     
+  valor: number;
+  ordem: number;
+}
+
+interface BatchAlternativasPayload {
+  tipo_resposta: string;
+  alternativas: BatchAlternativa[];
+}
 
 interface SessaoInfoCardProps {
   sessao: Sessao;
@@ -77,7 +90,7 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
         });
       } else {
         // Cria nova pergunta
-        questionResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas/`, {
+        questionResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -205,7 +218,7 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
     setOpenBatchModal(false);
   };
   // Dentro do componente SessaoInfoCard.tsx
-  const handleSaveBatchAlternativas = async (payload: AlternativasLotePayload) => {
+  const handleSaveBatchAlternativas = async (payload: BatchAlternativasPayload) => {
     const token = localStorage.getItem('@App:token');
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/sessoes/${sessao.id}/alternativas-lote`, {

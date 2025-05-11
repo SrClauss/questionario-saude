@@ -159,8 +159,10 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
               }
             }}
           >
-            <MenuItem value="escala_likert">Escala Likert 5</MenuItem>
-            <MenuItem value="escala_likert_7">Escala Likert 7</MenuItem>
+            <MenuItem value="escala_likert_3">Escala Likert(3 alternativas)</MenuItem>
+            <MenuItem value="escala_likert_4">Escala Likert(4 alternativas)</MenuItem>
+            <MenuItem value="escala_likert_5">Escala Likert(5 alternativas)</MenuItem>
+            <MenuItem value="escala_likert_7">Escala Likert(7 alternativas)</MenuItem>      
             <MenuItem value="texto">Texto</MenuItem>
             <MenuItem value="booleano">Sim/Não</MenuItem>
             <MenuItem value="personalizado">Personalizado</MenuItem>
@@ -185,8 +187,8 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
           >
             <MenuItem value="soma_item">Soma dos Itens</MenuItem>
             <MenuItem value="qualitativo">Qualitativo</MenuItem>
-            <MenuItem value="moda">Moda</MenuItem>
-            <MenuItem value="media">Média</MenuItem>
+            <MenuItem value="moda_itens">Moda</MenuItem>
+            <MenuItem value="media_sessao">Média</MenuItem>
             <MenuItem value="formula_anterior">Fórmula Anterior</MenuItem>
           </Select>
           {errors.metodo_pontuacao && <FormHelperText>{errors.metodo_pontuacao}</FormHelperText>}

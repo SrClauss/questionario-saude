@@ -19,6 +19,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
         <TextField
             variant="outlined"
             placeholder="Search..."
+            fullWidth
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -35,7 +36,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                     }
                 }
             }
-            sx={{ width: "100%", marginTop: "16px" }}
+
         />
     );
 }

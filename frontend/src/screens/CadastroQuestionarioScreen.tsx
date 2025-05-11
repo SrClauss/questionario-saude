@@ -58,7 +58,7 @@ export default function CadastroQuestionarioScreen() {
     try {
       const url = urlId
         ? `${backendUrl}/questionario/${urlId}`
-        : `${backendUrl}/questionario/`;
+        : `${backendUrl}/questionario`;
       const method = urlId ? "PUT" : "POST";
 
       const response = await fetch(url, {

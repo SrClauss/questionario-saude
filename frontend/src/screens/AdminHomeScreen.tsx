@@ -1,12 +1,15 @@
 import AdminLayout from '../layouts/AdminLayout'
-import {auth} from '../utils/auth'
+import StylizedTitle from '../components/StylizedTitle'
 
 export default function AdminHomeScreen() {
 
     return (
         <AdminLayout>
-            <h1>Painel Administrativo</h1>
-            <div></div>
+            <StylizedTitle title="Home" />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
+                <h1>Bem-vindo ao sistema de gerenciamento de questionários!</h1>
+                <p>Selecione uma opção no menu lateral para começar.</p>
+            </div>
         </AdminLayout>
     )
 }

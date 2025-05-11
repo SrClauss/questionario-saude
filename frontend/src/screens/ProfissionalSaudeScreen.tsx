@@ -8,6 +8,7 @@ import { ProfissionalSaude } from "../types/user";
 import { Add, Delete, InfoRounded } from "@mui/icons-material";
 import { Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
 import DeleteModal from "../modals/DeleteDialog";
+import StylizedTitle from "../components/StylizedTitle";
 
 export default function ProfissionalSaudeScreen() {
     const [showProfissionalSaudeModal, setShowProfissionalSaudeModal] = React.useState(false);
@@ -30,7 +31,7 @@ export default function ProfissionalSaudeScreen() {
 
         setSearchQuery(query); // Salva o termo de busca mais recente
 
-        const url = `${baseUrl}/profissionais_saude/filter_by_name/${query}/`;
+        const url = `${baseUrl}/profissionais_saude/filter_by_name/${query}`;
         fetch(url, {
             method: 'GET',
             headers: {
@@ -87,6 +88,14 @@ export default function ProfissionalSaudeScreen() {
     }
     return (
         <AdminLayout>
+
+             <Box id="container"
+
+            sx={{
+                paddingTop:{ xs: 4, sm: 4, md: 0 },
+            }}
+            >
+            <StylizedTitle title="Profissionais de Saúde" />
             <SearchBar onSearch={handleFilter} />
             {showProfissionalSaudeModal && (
                 <ProfissionalSaudeModal
@@ -160,7 +169,7 @@ export default function ProfissionalSaudeScreen() {
                         setSelectedProfissionalSaude(null);
                         setShowProfissionalSaudeModal(true);
                     }}
-                    style={{ position: 'fixed', bottom: 16, right: 16 }}
+                    style={{ position: 'fixed', bottom: 16, right: 32 }}
                 >
                     <Add />
                 </Fab>
@@ -179,6 +188,7 @@ export default function ProfissionalSaudeScreen() {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+            </Box>
         </AdminLayout>
     );
 }

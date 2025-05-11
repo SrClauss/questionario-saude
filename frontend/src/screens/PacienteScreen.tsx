@@ -4,9 +4,11 @@ import SearchBar from "../components/SearchBar";
 import AdminLayout from "../layouts/AdminLayout";
 import PacienteModal from "../modals/PacienteModal";
 import { Paciente } from "../types/user";
-import { Add, Delete, InfoRounded } from "@mui/icons-material";
+import { Add, BallotRounded, Delete, InfoRounded } from "@mui/icons-material";
 import { Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
 import DeleteModal from "../modals/DeleteDialog";
+import { useNavigate } from "react-router-dom";
+import StylizedTitle from "../components/StylizedTitle";
 export default function PacienteScreen() {
     const [showPacienteModal, setShowPacienteModal] = React.useState(false);
     const [selectedPaciente, setSelectedPaciente] = React.useState<Paciente | null>(null);
@@ -27,7 +29,7 @@ export default function PacienteScreen() {
 
         setSearchQuery(query); // Salva o termo de busca mais recente
 
-        const url = `${baseUrl}/pacientes/filter_by_name/${query}/`;
+        const url = `${baseUrl}/pacientes/filter_by_name/${query}`;
         fetch(url, {
             method: 'GET',
             headers: {
@@ -44,7 +46,7 @@ export default function PacienteScreen() {
             });
     };
     
-
+    const navigate = useNavigate();
     const handleModalSubmit = (feedback: { type: string; message: string }) => {
         setSnackbar({ open: true, type: feedback.type, message: feedback.message });
         setShowPacienteModal(false);
@@ -84,6 +86,13 @@ export default function PacienteScreen() {
     }
     return (
         <AdminLayout>
+             <Box id="container"
+
+            sx={{
+                paddingTop:{ xs: 4, sm: 4, md: 0 },
+            }}
+            >
+            <StylizedTitle title="Pacientes" />
             <SearchBar onSearch={handleFilter} />
             {showPacienteModal && (
                 <PacienteModal
@@ -114,7 +123,17 @@ export default function PacienteScreen() {
                                     <TableCell>
                                         {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
                                     </TableCell>
+
                                     <TableCell>
+                                        <IconButton
+                                        onClick={()=>navigate(`/aplicacao-paciente-questionario/${paciente.id}`)}
+                                        
+                                        >
+                                            <BallotRounded
+                                                color="primary"                                            
+                                            />
+                                                
+                                        </IconButton>
                                         <IconButton>
                                             <InfoRounded
                                                 color="info"
@@ -159,7 +178,7 @@ export default function PacienteScreen() {
                         setSelectedPaciente(null);
                         setShowPacienteModal(true);
                     }}
-                    style={{ position: 'fixed', bottom: 16, right: 16 }}
+                    style={{ position: 'fixed', bottom: 16, right: 32 }}
                 >
                     <Add />
                 </Fab>
@@ -178,6 +197,7 @@ export default function PacienteScreen() {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+            </Box>
         </AdminLayout>
     );
 }

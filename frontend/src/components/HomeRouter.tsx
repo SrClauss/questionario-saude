@@ -18,8 +18,8 @@ export default function HomeRouter() {
   switch(userData?.role) {
     case 'admin':
       return <AdminHomeScreen />
-    case 'profissional':
-      return <ProfissionalHomeScreen />
+    case 'profissional_saude':
+      return <AdminHomeScreen />
     case 'paciente':
       return <PacienteHomeScreen />
     case 'colaborador':

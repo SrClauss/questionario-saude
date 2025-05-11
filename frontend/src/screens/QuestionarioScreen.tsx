@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Box,
     Table,
@@ -10,19 +10,42 @@ import {
     Tooltip,
     Button,
     Snackbar,
-    Alert
+    Alert,
+    styled,
+    Pagination,
+    Fab
 } from "@mui/material";
-import { Delete, InfoRounded, Add } from "@mui/icons-material";
+import { Delete, InfoRounded, Add, Person2 } from "@mui/icons-material";
 import SearchBar from "../components/SearchBar";
 import AdminLayout from "../layouts/AdminLayout";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "../modals/DeleteDialog";
 
-interface Questionario {
-    id: string;
-    titulo: string;
-    // Outras propriedades podem existir, mas não serão exibidas
-}
+import { Questionario } from "../types/questionario";
+import StylizedTitle from "../components/StylizedTitle";
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    maxWidth: 'calc(100% - 150px)', // Ajuste este valor conforme necessário
+    flexGrow: 1,
+    [theme.breakpoints.down('sm')]: {
+        whiteSpace: 'normal', // Permite quebra de linha em telas menores
+    },
+}));
+
+const ActionsTableCell = styled(TableCell)(({ theme }) => ({
+    whiteSpace: 'nowrap',
+    width: '150px', // Ajuste este valor conforme necessário
+    [theme.breakpoints.down('sm')]: {
+        width: '100%', // Ocupa toda a largura disponível
+        display: 'flex',
+        flexDirection: 'column', // Coloca os botões um embaixo do outro
+        alignItems: 'flex-start', // Alinha os botões à esquerda
+        whiteSpace: 'normal', // Permite quebra de linha nos textos dos botões, se necessário
+    },
+}));
 
 export default function QuestionarioScreen() {
     const [questionarios, setQuestionarios] = useState<Questionario[]>([]);
@@ -46,20 +69,32 @@ export default function QuestionarioScreen() {
 
     const [showDeleteModal, setShowDeleteModal] = useState<deleteModalProps>({
         open: false,
-        onClose: () => {},
-        onConfirm: () => {},
+        onClose: () => { },
+        onConfirm: () => { },
         itemName: "",
         id: ""
     });
 
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 10;
+    const [aplicacaoModal, setAplicacaoModal] = useState({
+        open: false,
+        questionario: {} as Questionario,
+        onClose: () => { setAplicacaoModal({ ...aplicacaoModal, open: false }) },
+    });
 
-    const handleFilter = (query: string) => {
-        if (query.length < 3) return;
-        setSearchQuery(query);
 
+    const fetchQuestionarios = (query: string = "", currentPage: number = 1) => {
         const baseUrl = import.meta.env.VITE_BACKEND_URL;
         const token = localStorage.getItem("@App:token");
-        const url = `${baseUrl}/questionario/find_by_title_or_description/${query}/`;
+        let url = `${baseUrl}/questionario`;
+
+        if (query) {
+            url = `${baseUrl}/questionario/find_by_title_or_description/${query}`;
+        } else {
+            url = `${baseUrl}/questionario/${currentPage}/${itemsPerPage}`;
+        }
 
         fetch(url, {
             method: "GET",
@@ -70,7 +105,6 @@ export default function QuestionarioScreen() {
         })
             .then((response) => {
                 if (!response.ok) {
-
                     if (response.status === 401) {
                         setSnackbar({
                             open: true,
@@ -78,25 +112,19 @@ export default function QuestionarioScreen() {
                             message: "Sessão expirada. Faça login novamente."
                         });
                         localStorage.removeItem("@App:token");
-                        //uma espera de 2 segundos para redirecionar
                         setTimeout(() => {
                             navigate("/login");
                         }, 2000);
                         return;
                     }
                     throw new Error(`Erro na requisição: ${response.status}`);
-                   
                 }
                 return response.json();
             })
             .then((data) => {
                 if (Array.isArray(data)) {
                     setQuestionarios(data);
-                    setSnackbar({
-                        open: true,
-                        type: "success",
-                        message: "Questionários carregados com sucesso!"
-                    });
+                    setTotalPages(Math.ceil(30 / itemsPerPage));
                 } else {
                     console.error("API retornou um formato inesperado:", data);
                     setSnackbar({
@@ -115,6 +143,16 @@ export default function QuestionarioScreen() {
                 });
             });
     };
+
+    const handleFilter = (query: string) => {
+        setSearchQuery(query);
+        setPage(1); // Reset para a primeira página ao realizar uma nova busca
+        fetchQuestionarios(query, 1);
+    };
+
+    useEffect(() => {
+        fetchQuestionarios("", page); // Carrega a primeira página ao montar o componente
+    }, [page]);
 
     const handleDelete = (id: string) => {
         const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -154,75 +192,113 @@ export default function QuestionarioScreen() {
             });
     };
 
+    const handleChangePage = (_event: any, value: number) => {
+        setPage(value);
+    };
+
     return (
         <AdminLayout>
-            <Box sx={{ marginBottom: 2 }}>
-                <SearchBar onSearch={handleFilter} />
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}>
-                <Button onClick={() => navigate("/cadastro-questionario")} variant="contained" color="primary" startIcon={<Add />}>
-                    Cadastrar Questionário
-                </Button>
-            </Box>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Título</TableCell>
-                        <TableCell>Ações</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {questionarios.map((q) => (
-                        <TableRow key={q.id}>
-                            <TableCell>{q.titulo}</TableCell>
-                            <TableCell>
-                                <Tooltip title="Info">
-                                    <IconButton color="info" onClick={() => navigate(`/cadastro-questionario/${q.id}`)}>
-                                        <InfoRounded />
-                                    </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                    <IconButton
-                                        color="error"
-                                        onClick={() => setShowDeleteModal({
-                                            open: true,
-                                            onClose: () => setShowDeleteModal({ ...showDeleteModal, open: false }),
-                                            onConfirm: () => handleDelete(q.id),
-                                            itemName: q.titulo,
-                                            id: q.id
-                                        })}
-                                    >
-                                        <Delete />
-                                    </IconButton>
-                                </Tooltip>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={handleSnackbarClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            <Box id="container"
+
+            sx={{
+                paddingTop:{ xs: 4, sm: 4, md: 0 },
+            }}
             >
-                <Alert
-                    onClose={handleSnackbarClose}
-                    severity={snackbar.type}
-                    sx={{ width: "100%" }}
+                <StylizedTitle title="Questionários" />
+                <Box >
+                    <SearchBar onSearch={handleFilter} />
+                </Box>
+                <Fab
+                    color="primary"
+                    aria-label="add"
+                    onClick={() => navigate("/cadastro-questionario")}
+                    sx={{
+                        position: 'fixed',
+                        bottom: 16,
+                        right: 32,
+                    }}
                 >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
-            <DeleteModal
-                open={showDeleteModal.open}
-                onClose={() => setShowDeleteModal({ ...showDeleteModal, open: false })}
-                onConfirm={() => {
-                    handleDelete(showDeleteModal.id || "");
-                    setShowDeleteModal({ ...showDeleteModal, open: false });
-                }}
-                itemName={showDeleteModal.itemName}
-            />
+                    <Add />
+
+                </Fab>
+               
+               
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Título</TableCell>
+                            <TableCell>Ações</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {questionarios.map((q) => (
+                            <TableRow key={q.id}>
+                                <StyledTableCell>
+                                    {q.titulo}
+                                </StyledTableCell>
+                                <ActionsTableCell>
+                                    <Tooltip title="Aplicar Questionário">
+                                        <IconButton color="primary" onClick={() => navigate(`/aplicacao-questionario/${q.id}`)}>
+                                            <Person2 />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Info">
+                                        <IconButton color="info" onClick={() => navigate(`/cadastro-questionario/${q.id}`)}>
+                                            <InfoRounded />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete">
+                                        <IconButton
+                                            color="error"
+                                            onClick={() => setShowDeleteModal({
+                                                open: true,
+                                                onClose: () => setShowDeleteModal({ ...showDeleteModal, open: false }),
+                                                onConfirm: () => handleDelete(q.id),
+                                                itemName: q.titulo,
+                                                id: q.id
+                                            })}
+                                        >
+                                            <Delete />
+                                        </IconButton>
+                                    </Tooltip>
+                                </ActionsTableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+                <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+                    <Pagination
+                        count={totalPages}
+                        page={page}
+                        onChange={handleChangePage}
+                        color="primary"
+                    />
+                </Box>
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={6000}
+                    onClose={handleSnackbarClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                >
+                    <Alert
+                        onClose={handleSnackbarClose}
+                        severity={snackbar.type}
+                        sx={{ width: "100%" }}
+                    >
+                        {snackbar.message}
+                    </Alert>
+                </Snackbar>
+                <DeleteModal
+                    open={showDeleteModal.open}
+                    onClose={() => setShowDeleteModal({ ...showDeleteModal, open: false })}
+                    onConfirm={() => {
+                        handleDelete(showDeleteModal.id || "");
+                        setShowDeleteModal({ ...showDeleteModal, open: false });
+                    }}
+                    itemName={showDeleteModal.itemName}
+                />
+
+            </Box>
         </AdminLayout>
     );
 }

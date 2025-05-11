@@ -11,22 +11,21 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails
+    Alert,
 } from '@mui/material';
-import { AddCircleOutline, RemoveCircleOutline, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
+import { AddCircleOutline, RemoveCircleOutline } from '@mui/icons-material';
 import RenderAlternativas from '../../components/AlternativaForm';
 import { Alternativa } from '../../types/questionario';
 
 export interface PerguntaData {
+    id?: string;
     texto: string;
     tipo_resposta: string;
     ordem: number;
     is_obrigatoria: boolean;
     sessao_id: string;
     alternativas: Alternativa[];
-    metodo_pontuacao: string; // Adicionado o campo metodo_pontuacao
+    metodo_pontuacao: string;
 }
 
 interface PerguntasEmLoteModalProps {
@@ -38,59 +37,48 @@ interface PerguntasEmLoteModalProps {
 
 const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClose, onSave, sessaoId }) => {
     const [perguntas, setPerguntas] = useState<PerguntaData[]>([
-        { 
-            texto: '', 
-            tipo_resposta: 'texto', 
-            ordem: 1, 
-            is_obrigatoria: false, 
-            sessao_id: sessaoId, 
+        {
+            texto: '',
+            tipo_resposta: 'texto',
+            ordem: 1,
+            is_obrigatoria: false,
+            sessao_id: sessaoId,
             alternativas: [],
-            metodo_pontuacao: 'soma_item' // Valor padrão
+            metodo_pontuacao: 'soma_item',
         }
     ]);
     const [globalTipo, setGlobalTipo] = useState<string>('texto');
-    const [globalMetodoPontuacao, setGlobalMetodoPontuacao] = useState<string>('soma_item'); // Novo estado
+    const [globalMetodoPontuacao, setGlobalMetodoPontuacao] = useState<string>('soma_item');
     const [alternativas, setAlternativas] = useState<Alternativa[]>([]);
+    const [showValidationAlert, setShowValidationAlert] = useState(false);
+    const [errors, setErrors] = useState<{ [key: number]: string }>({});
 
     useEffect(() => {
-        setPerguntas(prevPerguntas => {
-            const updated = prevPerguntas.map(p => ({ ...p, tipo_resposta: globalTipo }));
-            return updated;
-        });
+        setPerguntas(prev => prev.map(p => ({ ...p, tipo_resposta: globalTipo })));
     }, [globalTipo]);
 
-    // Efeito para atualizar o método de pontuação em todas as perguntas
     useEffect(() => {
-        setPerguntas(prevPerguntas => {
-            const updated = prevPerguntas.map(p => ({ ...p, metodo_pontuacao: globalMetodoPontuacao }));
-            return updated;
-        });
+        setPerguntas(prev => prev.map(p => ({ ...p, metodo_pontuacao: globalMetodoPontuacao })));
     }, [globalMetodoPontuacao]);
 
     const handleSave = useCallback(() => {
-        // Atualiza todas as perguntas com as alternativas comuns
-        const perguntasComAlternativas = perguntas.map(pergunta => ({
-            ...pergunta,
-            alternativas: alternativas
-        }));
-        
-        // Payload formatado corretamente
-        const payload = {
-            perguntas: perguntasComAlternativas.map(pergunta => ({
-                texto: pergunta.texto,
-                tipo_resposta: pergunta.tipo_resposta,
-                ordem: pergunta.ordem,
-                is_obrigatoria: pergunta.is_obrigatoria,
-                metodo_pontuacao: pergunta.metodo_pontuacao, // Incluir método de pontuação
-                alternativas: alternativas.map(alt => ({
-                    texto: alt.texto,
-                    valor: alt.valor,
-                    ordem: alt.ordem
-                }))
-            }))
-        };
+        // Validação simples: texto mínimo de 5 caracteres para cada pergunta
+        let valid = true;
+        const newErrors: { [key: number]: string } = {};
+        perguntas.forEach((p, idx) => {
+            if (!p.texto.trim() || p.texto.trim().length < 5) {
+                valid = false;
+                newErrors[idx] = 'O texto deve ter pelo menos 5 caracteres';
+            }
+        });
+        setErrors(newErrors);
+        setShowValidationAlert(!valid);
+        if (!valid) return;
 
-        console.log("Payload para salvar:", payload);
+        const perguntasComAlternativas = perguntas.map(p => ({
+            ...p,
+            alternativas: alternativas,
+        }));
         onSave(perguntasComAlternativas);
         onClose();
     }, [perguntas, alternativas, onSave, onClose]);
@@ -105,7 +93,7 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                 is_obrigatoria: false,
                 sessao_id: sessaoId,
                 alternativas: [],
-                metodo_pontuacao: globalMetodoPontuacao // Usar o método global
+                metodo_pontuacao: globalMetodoPontuacao,
             }
         ]);
     };
@@ -121,8 +109,8 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
         );
     };
 
-    const handleSetAlternativas = useCallback((newAlternativas: Alternativa[]) => {
-        setAlternativas(newAlternativas);
+    const handleSetAlternativas = useCallback((alts: Alternativa[]) => {
+        setAlternativas(alts);
     }, []);
 
     return (
@@ -130,21 +118,26 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
             <Box
                 sx={{
                     backgroundColor: 'white',
-                    width: { xs: '90%', sm: '80%', md: '60%' }, // Ajuste na largura
-                    height: { xs: '100%', md: 'auto' },
-                    maxHeight: { xs: '100vh', md: '80vh' },
-                    margin: { xs: 'auto', sm: 'auto' }, // Centraliza o modal
-                    mt: { xs: 0, sm: 4 },
-                    p: { xs: 2, sm: 3 }, // Ajuste no padding
-                    borderRadius: { xs: 0, md: 2 },
-                    overflowY: 'auto'
+                    width: { xs: '90%', sm: '60%', md: '40%' },
+                    margin: 'auto',
+                    marginTop: '10%',
+                    padding: 3,
+                    borderRadius: 2,
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
                 }}
             >
-                <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.2rem', md: '1.5rem' } }}> 
+                <Typography variant="h6" sx={{ mb: 2 }}>
                     Criar Perguntas em Lote
                 </Typography>
 
-                <FormControl fullWidth sx={{ mb: 2 }}>
+                {showValidationAlert && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        Por favor, corrija os erros no formulário para continuar.
+                    </Alert>
+                )}
+
+                <FormControl fullWidth margin="normal">
                     <InputLabel id="tipo-global-label">Tipo de Resposta</InputLabel>
                     <Select
                         labelId="tipo-global-label"
@@ -152,17 +145,18 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                         label="Tipo de Resposta"
                         onChange={e => setGlobalTipo(e.target.value)}
                     >
+                        <MenuItem value="escala_likert_3">Escala Likert(3 alternativas)</MenuItem>
+                        <MenuItem value="escala_likert_4">Escala Likert(4 alternativas)</MenuItem>
+                        <MenuItem value="escala_likert_5">Escala Likert(5 alternativas)</MenuItem>
+                        <MenuItem value="escala_likert_7">Escala Likert(7 alternativas)</MenuItem>
                         <MenuItem value="texto">Texto</MenuItem>
-                        <MenuItem value="booleano">Booleano</MenuItem>
-                        <MenuItem value="numero">Número</MenuItem>
-                        <MenuItem value="escala_likert">Escala Likert 5</MenuItem>
-                        <MenuItem value="escala_likert_7">Escala Likert 7</MenuItem>
+                        <MenuItem value="booleano">Sim/Não</MenuItem>
                         <MenuItem value="personalizado">Personalizado</MenuItem>
+                        <MenuItem value="numero">Número</MenuItem>
                     </Select>
                 </FormControl>
 
-                {/* Novo campo para método de pontuação global */}
-                <FormControl fullWidth sx={{ mb: 2 }}>
+                <FormControl fullWidth margin="normal">
                     <InputLabel id="metodo-pontuacao-global-label">Método de Pontuação</InputLabel>
                     <Select
                         labelId="metodo-pontuacao-global-label"
@@ -172,59 +166,39 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                     >
                         <MenuItem value="soma_item">Soma dos Itens</MenuItem>
                         <MenuItem value="qualitativo">Qualitativo</MenuItem>
-                        <MenuItem value="moda">Moda</MenuItem>
-                        <MenuItem value="media">Média</MenuItem>
+                        <MenuItem value="moda_itens">Moda</MenuItem>
+                        <MenuItem value="media_sessao">Média</MenuItem>
                         <MenuItem value="formula_anterior">Fórmula Anterior</MenuItem>
                     </Select>
                 </FormControl>
 
-                <Divider sx={{ mb: 2 }} />
-
-                {(globalTipo === 'escala_likert' ||
-                    globalTipo === 'escala_likert_7' ||
-                    globalTipo === 'booleano' ||
-                    globalTipo === 'personalizado') && (
-                    <Box sx={{ mb: 2 }}>
-                        <Accordion defaultExpanded>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography>Alternativas Comuns</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                <RenderAlternativas
-                                    tipo_resposta={globalTipo}
-                                    onSetAlternativas={handleSetAlternativas}
-                                    alternativas={alternativas}
-                                    pergunta_id=''
-                                />
-                            </AccordionDetails>
-                        </Accordion>
-                    </Box>
+                {(globalTipo !== 'texto' && globalTipo !== 'numero') && (
+                    <RenderAlternativas
+                        tipo_resposta={globalTipo}
+                        onSetAlternativas={handleSetAlternativas}
+                        alternativas={alternativas}
+                        pergunta_id=""
+                    />
                 )}
 
-                {perguntas.map((pergunta, idx) => (
-                    <Box
-                        key={idx}
-                        sx={{
-                            display: 'flex',
-                            flexDirection: { xs: 'column', sm: 'row' }, // Alinha os itens verticalmente em telas pequenas
-                            alignItems: 'center',
-                            gap: 2,
-                            mb: 2,
-                            p: 2,
-                            border: '1px solid #e0e0e0',
-                            borderRadius: 1
-                        }}
-                    >
+                <Divider sx={{ my: 2 }} />
+
+                {perguntas.map((p, idx) => (
+                    <Box key={idx} sx={{ mb: 2 }}>
                         <TextField
                             label={`Texto da Pergunta ${idx + 1}`}
-                            value={pergunta.texto}
-                            onChange={e => handleChangePerguntaTexto(idx, e.target.value)}
                             fullWidth
-                            sx={{ mb: { xs: 1, sm: 0 } }} // Adiciona margem inferior em telas pequenas
+                            value={p.texto}
+                            onChange={e => handleChangePerguntaTexto(idx, e.target.value)}
+                            margin="normal"
+                            error={!!errors[idx]}
+                            helperText={errors[idx]}
                         />
-                        <IconButton color="error" onClick={() => handleRemovePergunta(idx)}>
-                            <RemoveCircleOutline />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <IconButton color="error" onClick={() => handleRemovePergunta(idx)}>
+                                <RemoveCircleOutline />
+                            </IconButton>
+                        </Box>
                     </Box>
                 ))}
 
@@ -237,11 +211,11 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                     Adicionar Pergunta
                 </Button>
 
-                <Box sx={{ display: 'flex', gap: 2, mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}> 
-                    <Button variant="outlined" onClick={onClose} fullWidth>
+                <Box sx={{ display: 'flex', justifyContent: 'space-around', gap: 1 }}>
+                    <Button variant="outlined" fullWidth onClick={onClose}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" onClick={handleSave} fullWidth>
+                    <Button variant="contained" fullWidth onClick={handleSave}>
                         Salvar
                     </Button>
                 </Box>

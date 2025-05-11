@@ -96,7 +96,6 @@ def register_paciente():
         return jsonify({'error': 'Erro interno no servidor', 'details': str(e)}), 400
 
 @paciente_bp.route('/<id>', methods=['GET'])
-@token_required(roles=['admin', 'profissional_saude', 'colaborador'])
 def get_paciente(id):
     try:
         paciente = Paciente.query.get(id)
@@ -172,8 +171,8 @@ def get_paciente_by_email(email):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@paciente_bp.route('/filter_by_name/<name>/', methods=['GET'])
-@paciente_bp.route('/filter_by_name/<name>/<int:page>/<int:len>/', methods=['GET'])
+@paciente_bp.route('/filter_by_name/<name>', methods=['GET'])
+@paciente_bp.route('/filter_by_name/<name>/<int:page>/<int:len>', methods=['GET'])
 @token_required(roles=['admin', 'profissional_saude', 'colaborador'])
 def get_paciente_by_name(name, page=1, len=10):
     try:
@@ -181,5 +180,15 @@ def get_paciente_by_name(name, page=1, len=10):
             page=page, per_page=len, error_out=False
         )
         return jsonify([paciente.to_json() for paciente in pacientes.items]), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@paciente_bp.route('/get_paciente_by_user_id/<user_id>', methods=['GET'])
+def get_paciente_by_user_id(user_id):
+    try:
+        paciente = Paciente.query.filter_by(user_id=user_id).first()
+        if not paciente:
+            return jsonify({'error': 'Paciente não encontrado'}), 404
+        return jsonify(paciente.to_json()), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

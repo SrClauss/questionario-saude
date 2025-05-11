@@ -29,7 +29,7 @@ export default function ColaboradorScreen() {
 
         setSearchQuery(query); // Salva o termo de busca mais recente
 
-        const url = `${baseUrl}/colaboradores/filter_by_name/${query}/`;
+        const url = `${baseUrl}/colaboradores/filter_by_name/${query}`;
         fetch(url, {
             method: 'GET',
             headers: {
