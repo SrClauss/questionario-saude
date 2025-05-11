@@ -1,11 +1,11 @@
-import { Box, Typography, Divider, useTheme } from '@mui/material'
+import { Box, Typography, Divider } from '@mui/material'
 
 interface StylizedTitleProps {
     title: string
 }
 
 export default function StylizedTitle({ title }: StylizedTitleProps) {
-    const theme = useTheme()
+
     return(
         <Box sx={{ 
             display: 'flex', 

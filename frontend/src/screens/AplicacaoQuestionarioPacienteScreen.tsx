@@ -2,13 +2,10 @@ import { useState } from "react";
 import {
   Snackbar,
   Alert,
-  TextField,
   Button,
-  Typography,
   Box,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
-import { Add, Delete, InfoRounded } from "@mui/icons-material";
 import SearchBar from "../components/SearchBar";
 import { Paciente } from "../types/user";
 import { auth } from "../utils/auth";

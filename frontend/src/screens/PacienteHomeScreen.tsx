@@ -1,5 +1,5 @@
-import React, { useState, useEffect, use } from 'react';
-import { Box, Typography, Button, Divider, Container, Avatar, Fab } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography,  Container, Avatar, Fab } from '@mui/material';
 import { auth } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
 const PacienteHomeScreen: React.FC = () => {

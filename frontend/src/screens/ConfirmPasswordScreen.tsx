@@ -94,7 +94,7 @@ export default function ConfirmPasswordScreen() {
     }
   };
 
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleCloseSnackbar = (_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
     setOpenSnackbar(false);
   };

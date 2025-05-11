@@ -45,7 +45,6 @@ export default function CadastroQuestionarioScreen() {
 
   const [isSessaoModalOpen, setIsSessaoModalOpen] = useState(false);
   const [selectedSessao, setSelectedSessao] = useState<Sessao | null>(null);
-  const [isNewSessao, setIsNewSessao] = useState(false);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [sessaoToDelete, setSessaoToDelete] = useState<string | null>(null);
@@ -100,9 +99,7 @@ export default function CadastroQuestionarioScreen() {
     }
   };
 
-  const handleEdit = (questionario: Questionario) => {
-    setIsViewMode(false);
-  };
+
 
   const prepareFormData = () => {
     if (!questionario) return undefined;
@@ -166,26 +163,20 @@ export default function CadastroQuestionarioScreen() {
 
   const handleOpenSessaoModal = (sessao: Sessao) => {
     setSelectedSessao(sessao);
-    setIsNewSessao(false);
     setIsSessaoModalOpen(true);
   };
 
   const handleOpenNewSessaoModal = () => {
     setSelectedSessao(null);
-    setIsNewSessao(true);
     setIsSessaoModalOpen(true);
   };
 
   const handleCloseSessaoModal = () => {
     setIsSessaoModalOpen(false);
     setSelectedSessao(null);
-    setIsNewSessao(false);
   };
 
-  const handleSaveSessao = async (sessaoData: SessaoData) => {
-    // O restante da função permanece igual
-    // ...
-  };
+
 
   const handleConfirmDeleteSessao = (sessaoId: string) => {
     setSessaoToDelete(sessaoId);
@@ -243,7 +234,7 @@ export default function CadastroQuestionarioScreen() {
     }
   };
 
-  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleCloseSnackbar = (_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
     }
@@ -268,7 +259,6 @@ export default function CadastroQuestionarioScreen() {
         {isViewMode && questionario ? (
           <QuestionarioInfoCard
             questionario={questionario}
-            onEdit={handleEdit}
           />
         ) : (
           <QuestionarioForm
@@ -310,7 +300,7 @@ export default function CadastroQuestionarioScreen() {
       <SessaoModal
         open={isSessaoModalOpen}
         onClose={handleCloseSessaoModal}
-        onSave={handleSaveSessao}
+        onSave={console.log}
         initialData={selectedSessao || undefined}
         questionarioId={questionarioId || ""}
       />

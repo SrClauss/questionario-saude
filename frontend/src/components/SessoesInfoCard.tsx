@@ -247,7 +247,7 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
     }
     setOpenAlternativasModal(false);
   };
-  const handleCloseSnackbar = (e?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleCloseSnackbar = (_e?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
     setOpenSnackbar(false);
   };
@@ -321,7 +321,7 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
             <Box sx={{ display: 'flex', flexDirection: 'column', mt: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Respostas condicionais:</Typography>
               <Box sx={{ ml: 2 }}>
-                {sessao.respostas_condicionais.map((resposta: {id: string, texto: string}, index: number) => (
+                {sessao.respostas_condicionais.map((resposta: {id: string, texto: string}, _index: number) => (
                   <Typography key={resposta.id} variant="body1">
                     • {resposta.texto}
                     <Typography component="span" color="text.secondary" sx={{ fontSize: '0.8rem', ml: 1 }}>

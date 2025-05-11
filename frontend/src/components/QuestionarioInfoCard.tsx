@@ -5,25 +5,21 @@ import {
   AccordionDetails,
   Typography,
   Box,
-  IconButton,
-  Tooltip,
   List,
   ListItem,
   ListItemText,
   Card,
   CardContent
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Questionario } from '../types/questionario';
 import { formatarFonteABNT } from '../utils/abntFormatter';
 
 interface QuestionarioInfoCardProps {
   questionario: Questionario;
-  onEdit: (questionario: Questionario) => void;
 }
 
-const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionario, onEdit }) => {
+const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionario }) => {
 
   const formatText = (text: string | undefined) => {
     if (!text) return 'Sem descrição';
@@ -45,11 +41,6 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <Typography variant="h6">{questionario.titulo}</Typography>
-          <Tooltip title="Editar Questionário">
-            <IconButton onClick={() => onEdit(questionario)}>
-              <EditIcon color='primary' />
-            </IconButton>
-          </Tooltip>
         </Box>
       </AccordionSummary>
       <AccordionDetails>
