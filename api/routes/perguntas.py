@@ -62,7 +62,7 @@ def create_pergunta():
 @token_required(roles=['admin', 'profissional_saude'])
 def update_pergunta(id):
     """
-    Atualiza uma pergunta.
+    Atualiza uma pergunta e suas alternativas.
     """
     data = request.get_json()
     try:
@@ -70,13 +70,51 @@ def update_pergunta(id):
         if not pergunta:
             return jsonify({'error': 'Pergunta não encontrada'}), 404
 
+        # Atualiza dados básicos da pergunta
         pergunta.texto = data['texto']
-        pergunta.sessao_id = data['sessao_id']  # Corrigido para usar sessao_id
+        pergunta.sessao_id = data['sessao_id']
         pergunta.tipo_resposta = data.get('tipo_resposta', pergunta.tipo_resposta)
+        pergunta.metodo_pontuacao = data.get('metodo_pontuacao', pergunta.metodo_pontuacao)
         pergunta.ordem = data.get('ordem', pergunta.ordem)
         
+        # Processar alternativas se presentes no payload
+        if 'alternativas' in data and data['alternativas']:
+            # Separar alternativas para atualizar (com ID) e para inserir (sem ID)
+            alternativas_para_atualizar = []
+            alternativas_para_inserir = []
+            
+            for alt_data in data['alternativas']:
+                if 'id' in alt_data and alt_data['id']:
+                    # Alternativa existente para atualizar
+                    alt = Alternativa.query.get(alt_data['id'])
+                    if alt and alt.pergunta_id == pergunta.id:
+                        # Só atualiza se for desta pergunta
+                        alt.texto = alt_data['texto']
+                        alt.valor = alt_data['valor']
+                        alt.ordem = alt_data['ordem']
+                        alternativas_para_atualizar.append(alt)
+                else:
+                    # Nova alternativa para inserir
+                    nova_alt = Alternativa(
+                        pergunta_id=pergunta.id,
+                        texto=alt_data['texto'],
+                        valor=alt_data['valor'],
+                        ordem=alt_data['ordem']
+                    )
+                    alternativas_para_inserir.append(nova_alt)
+            
+            # Adiciona todas as novas alternativas no banco de dados
+            if alternativas_para_inserir:
+                db.session.bulk_save_objects(alternativas_para_inserir)
+        
         db.session.commit()
-        return jsonify(pergunta.to_json()), 200
+        
+        # Obtém a pergunta atualizada com suas alternativas para retornar
+        pergunta_atualizada = Pergunta.query.options(joinedload(Pergunta.alternativas)).get(id)
+        pergunta_json = pergunta_atualizada.to_json()
+        pergunta_json['alternativas'] = [alt.to_json() for alt in pergunta_atualizada.alternativas]
+        
+        return jsonify(pergunta_json), 200
     except Exception as e:
         print(f"Erro ao atualizar pergunta: {e}")
         db.session.rollback()
@@ -167,11 +205,6 @@ def  get_pergunta_detailed(id):
 @perguntas_bp.route('/<id>/batch', methods=['POST'])
 @token_required(roles=['admin', 'profissional_saude'])
 def create_batch_perguntas(id):
-    
-
-
-
-
     """
     Cria várias perguntas de uma só vez com inserção em batch.
     Exemplo de payload:

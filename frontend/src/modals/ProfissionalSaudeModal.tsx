@@ -8,6 +8,7 @@ import { AdressCard } from '../components/AdressCard';
 import ColumnResponsive from '../components/ColumnResponsive';
 import { auth } from '../utils/auth';
 import { useTheme, Theme } from '@mui/material/styles';
+import TopicInputField from '../components/TopicInputField'; // Importe o TopicInputField
 
 interface ProfissionalSaudeModalProps {
   open: boolean;
@@ -24,8 +25,10 @@ interface ProfissionalSaudeState {
   cpf: string;
   tipo_registro: string;
   estado_registro: string;
+  
   telefone: string;
   enderecos: Endereco[];
+  perfil: string[]; // Adicione o campo perfil
 }
 
 const initialState: ProfissionalSaudeState = {
@@ -37,6 +40,7 @@ const initialState: ProfissionalSaudeState = {
   estado_registro: '',
   telefone: '',
   enderecos: [],
+  perfil: [], // Inicialize o campo perfil
 };
 
 const reducer = (state: ProfissionalSaudeState, action: any) => {
@@ -66,6 +70,8 @@ const reducer = (state: ProfissionalSaudeState, action: any) => {
     }
     case 'REMOVE_ENDERECO':
       return { ...state, enderecos: state.enderecos.filter((_, index) => index !== action.payload) };
+    case 'SET_PERFIL': // Adicione o caso para o campo perfil
+      return { ...state, perfil: action.payload };
     default:
       return state;
   }
@@ -100,6 +106,7 @@ const ProfissionalSaudeModal: React.FC<ProfissionalSaudeModalProps> = ({
       dispatch({ type: 'SET_ESTADO_REGISTRO', payload: profissionalSaude.estado_registro });
       dispatch({ type: 'SET_TELEFONE', payload: profissionalSaude.telefone || '' });
       dispatch({ type: 'SET_ENDERECOS', payload: profissionalSaude.enderecos || [] });
+      dispatch({ type: 'SET_PERFIL', payload: profissionalSaude.perfil || [] }); // Carregue o perfil
 
       fetch(`${import.meta.env.VITE_BACKEND_URL}/user/users/${profissionalSaude.user_id}`, {
         method: 'GET',
@@ -194,6 +201,7 @@ const ProfissionalSaudeModal: React.FC<ProfissionalSaudeModalProps> = ({
         body: JSON.stringify({
           ...state,
           id: profissionalSaude?.id || ulid(),
+          perfil: JSON.stringify(state.perfil) // Converta o array para string JSON
         }),
       });
 
@@ -224,6 +232,10 @@ const ProfissionalSaudeModal: React.FC<ProfissionalSaudeModalProps> = ({
     }
   };
 
+  const handlePerfilChange = (newPerfil: string[]) => {
+    dispatch({ type: 'SET_PERFIL', payload: newPerfil });
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -234,6 +246,8 @@ const ProfissionalSaudeModal: React.FC<ProfissionalSaudeModalProps> = ({
           margin: 'auto',
           transform: { md: 'translateY(10%)', lg: 'translateY(10%)' },
           padding: '24px',
+          maxHeight: '80vh', // Adicione uma altura máxima
+          overflowY: 'auto', // Adicione overflow para habilitar a rolagem
         }}
       >
         <Box
@@ -362,6 +376,15 @@ const ProfissionalSaudeModal: React.FC<ProfissionalSaudeModalProps> = ({
             helperText={formErrors.estado_registro}
           />
         </ColumnResponsive>
+
+        {/* Adicione o TopicInputField */}
+        <ColumnResponsive>
+          <TopicInputField
+            initialTopics={state.perfil}
+            onChange={handlePerfilChange}
+          />
+        </ColumnResponsive>
+
         <Box
           sx={{
             border: '1px solid #ccc',

@@ -95,6 +95,12 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
 
   const handleSave = () => {
     if (validateForm()) {
+      console.log({
+        texto,
+        tipo_resposta: tipoResposta,
+        metodo_pontuacao: metodoPontuacao,
+        alternativas,
+      })
       onSave({ 
         texto, 
         tipo_resposta: tipoResposta, 

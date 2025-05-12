@@ -19,11 +19,7 @@ interface AlternativaProps {
 
 const AlternativaCard: React.FC<AlternativaProps> = ({ texto, valor, onSetValor, onSetTexto }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [localTexto, setLocalTexto] = useState(texto);
 
-    useEffect(() => {
-        setLocalTexto(texto);
-    }, [texto]);
 
     return (
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -31,15 +27,15 @@ const AlternativaCard: React.FC<AlternativaProps> = ({ texto, valor, onSetValor,
             {isEditing ? (
                 <>
                     <TextField
-                        value={localTexto}
-                        onChange={(e) => setLocalTexto(e.target.value)}
+                        value={texto}
+                        onChange={(e) => onSetTexto(e.target.value)}
                         size="small"
                         sx={{ minWidth: 300 }}
                     />
                     <IconButton
                         color="primary"
                         onClick={() => {
-                            onSetTexto(localTexto);
+                            onSetTexto(texto);
                             setIsEditing(false);
                         }}
                     >
@@ -108,7 +104,7 @@ const EscalaLikert3: React.FC<EscalasAlternativas> = ({ pergunta_id, onSetAltern
 
     useEffect(() => {
         onSetAlternativas([discordo, neutro, concordo]);
-    }, [discordo, neutro, concordo, onSetAlternativas]);
+    }, [discordo, neutro, concordo]);
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 1 }}>

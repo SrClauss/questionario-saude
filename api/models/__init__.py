@@ -86,6 +86,7 @@ class ProfissionalSaude(db.Model):  # Alterado: Base -> db.Model
     registro_profissional = Column(String(50), unique=True, nullable=False)
     tipo_registro = Column(String(20), nullable=False)
     estado_registro = Column(String(2), nullable=False)
+    perfil = Column(JSON, nullable=True)
     cpf = Column(String(11), unique=True, nullable=False)
     enderecos = Column(JSON, nullable=True)
     telefone = Column(String(20))
@@ -452,6 +453,7 @@ class BateriaTestes(db.Model):  # Alterado: Base -> db.Model
             'questionario_id': self.questionario_id,
             'data_aplicacao': self.data_aplicacao.isoformat(),
             'observacoes': self.observacoes,
+            'respostas': self.respostas if self.respostas !={} else [],
             'is_completo': self.is_completo,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()

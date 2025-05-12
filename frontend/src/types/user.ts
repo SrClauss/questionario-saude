@@ -36,6 +36,7 @@ export class ProfissionalSaude {
     cpf: string;
     tipo_registro: string;
     estado_registro: string;
+    perfil: string[];
     enderecos?: Endereco[];
     telefone?: string;
     created_at: string;
@@ -49,6 +50,7 @@ export class ProfissionalSaude {
         cpf: string,
         tipo_registro: string,
         estado_registro: string,
+        perfil: string[],
         created_at: string,
         updated_at: string,
         user_id: string,
@@ -61,6 +63,7 @@ export class ProfissionalSaude {
         this.cpf = cpf;
         this.tipo_registro = tipo_registro;
         this.estado_registro = estado_registro;
+        this.perfil = perfil;
         this.created_at = created_at;
         this.updated_at = updated_at;
         this.user_id = user_id;

@@ -6,13 +6,10 @@ import {
   Tooltip,
   Typography,
   Snackbar,
-  Alert
+  Alert,
 } from "@mui/material";
 import AdminLayout from "../layouts/AdminLayout";
-import {
-  Sessao,
-  Questionario,
-} from "../types/questionario";
+import { Sessao, Questionario } from "../types/questionario";
 import { useNavigate, useParams } from "react-router-dom";
 import QuestionarioInfoCard from "../components/QuestionarioInfoCard";
 import QuestionarioForm from "../components/QuestionarioForm";
@@ -20,6 +17,8 @@ import { AddCircleSharp } from "@mui/icons-material";
 import SessaoInfoCard from "../components/SessoesInfoCard";
 import SessaoModal from "../modals/ModalsCadastroQuestionario/SessaoModal";
 import DeleteModal from "../modals/DeleteDialog";
+import { QuestionarioProvider } from "../contexts/QuestionarioContext";
+import { useQuestionarioContext } from "../contexts/QuestionarioContext";
 
 export interface PerguntaCondicional {
   id: string;
@@ -34,6 +33,14 @@ export interface SessaoData {
 }
 
 export default function CadastroQuestionarioScreen() {
+  return (
+    <QuestionarioProvider>
+      <CadastroQuestionarioContent />
+    </QuestionarioProvider>
+  );
+}
+
+function CadastroQuestionarioContent() {
   const { id: urlId } = useParams<{ id: string }>();
   const [questionarioId, setQuestionarioId] = useState<string | undefined>(urlId);
   const [questionario, setQuestionario] = useState<Questionario | null>(null);
@@ -53,6 +60,8 @@ export default function CadastroQuestionarioScreen() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "warning" | "info">("success");
 
+  const { setHasBaterias, hasBaterias } = useQuestionarioContext();
+
   const handleSave = async (data: Questionario) => {
     try {
       const url = urlId
@@ -70,27 +79,22 @@ export default function CadastroQuestionarioScreen() {
       });
 
       if (!response.ok) {
-        throw new Error(
-          `Erro ao ${urlId ? "atualizar" : "criar"} questionário: ${
-            response.status
-          }`
-        );
+        throw new Error(`Erro ao ${urlId ? "atualizar" : "criar"} questionário: ${response.status}`);
       }
 
-      let savedQuestionario = await response.json();
+      const savedQuestionario = await response.json();
       savedQuestionario.sessoes = questionario?.sessoes || [];
-
       setQuestionario(savedQuestionario);
       setIsViewMode(true);
 
       if (!urlId) {
         setQuestionarioId(savedQuestionario.id);
         navigate(`/cadastro-questionario/${savedQuestionario.id}`, { replace: true });
-
-        setSnackbarMessage(`Questionário "${savedQuestionario.titulo}" criado com sucesso!`);
-        setSnackbarSeverity("success");
-        setOpenSnackbar(true);
       }
+
+      setSnackbarMessage(`Questionário "${savedQuestionario.titulo}" ${urlId ? "atualizado" : "criado"} com sucesso!`);
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
     } catch (error: any) {
       console.error("Erro ao salvar questionário:", error);
       setSnackbarMessage(`Erro ao salvar questionário: ${error.message}`);
@@ -99,32 +103,24 @@ export default function CadastroQuestionarioScreen() {
     }
   };
 
-
-
   const prepareFormData = () => {
     if (!questionario) return undefined;
-
     return {
       titulo: questionario.titulo || "",
       descricao: questionario.descricao || "",
       versao: questionario.versao || "",
       fontes_literatura: Array.isArray(questionario.fontes_literatura)
-        ? questionario.fontes_literatura.map((fonte) => {
-            if (typeof fonte === "string") {
-              return {
-                titulo: fonte,
-                autores: "",
-                ano: "",
-              };
-            }
-            return {
-              titulo: fonte.titulo || "",
-              autores: fonte.autores || "",
-              ano: fonte.ano || "",
-              editora: fonte.editora,
-              local: fonte.local,
-            };
-          })
+        ? questionario.fontes_literatura.map((fonte) =>
+            typeof fonte === "string"
+              ? { titulo: fonte, autores: "", ano: "" }
+              : {
+                  titulo: fonte.titulo || "",
+                  autores: fonte.autores || "",
+                  ano: fonte.ano || "",
+                  editora: fonte.editora,
+                  local: fonte.local,
+                }
+          )
         : [],
     };
   };
@@ -161,6 +157,34 @@ export default function CadastroQuestionarioScreen() {
     fetchQuestionarioDetalhado();
   }, [urlId, backendUrl, token]);
 
+  useEffect(() => {
+    if (!questionarioId) return;
+    const fetchHasBaterias = async () => {
+      try {
+        const url = `${backendUrl}/questionario/has_baterias/${questionarioId}`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          console.error("Erro ao verificar baterias");
+          setHasBaterias(false);
+          return;
+        }
+        const data = await response.json();
+        setHasBaterias(data.has_baterias);
+      } catch (error) {
+        console.error("Erro no fetch has_baterias:", error);
+        setHasBaterias(false);
+      }
+    };
+
+    fetchHasBaterias();
+  }, [questionarioId, backendUrl, token, setHasBaterias]);
+
   const handleOpenSessaoModal = (sessao: Sessao) => {
     setSelectedSessao(sessao);
     setIsSessaoModalOpen(true);
@@ -176,7 +200,53 @@ export default function CadastroQuestionarioScreen() {
     setSelectedSessao(null);
   };
 
+  const handleSaveSessao = async (sessaoData: SessaoData) => {
+    try {
+      const url = selectedSessao
+        ? `${backendUrl}/sessoes/${selectedSessao.id}`
+        : `${backendUrl}/sessoes`;
+      const method = selectedSessao ? "PUT" : "POST";
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...sessaoData,
+          questionario_id: questionarioId,
+        }),
+      });
 
+      if (!response.ok) {
+        throw new Error(`Erro ao ${selectedSessao ? "atualizar" : "criar"} sessão: ${response.status}`);
+      }
+
+      const savedSessao = await response.json();
+
+      setQuestionario((prev) => {
+        if (!prev) return null;
+        const updatedSessoes = selectedSessao
+          ? prev.sessoes.map((sessao) =>
+              sessao.id === selectedSessao.id ? savedSessao : sessao
+            )
+          : [...prev.sessoes, savedSessao];
+        return { ...prev, sessoes: updatedSessoes };
+      });
+
+      setIsSessaoModalOpen(false);
+      setSelectedSessao(null);
+
+      setSnackbarMessage(`Sessão "${savedSessao.titulo}" ${selectedSessao ? "atualizada" : "criada"} com sucesso!`);
+      setSnackbarSeverity("success");
+      setOpenSnackbar(true);
+    } catch (error: any) {
+      console.error("Erro ao salvar sessão:", error);
+      setSnackbarMessage(`Erro ao salvar sessão: ${error.message}`);
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+    }
+  };
 
   const handleConfirmDeleteSessao = (sessaoId: string) => {
     setSessaoToDelete(sessaoId);
@@ -191,9 +261,7 @@ export default function CadastroQuestionarioScreen() {
   const handleDeleteSessao = async () => {
     try {
       if (!sessaoToDelete) return;
-
-      const sessaoTitle = questionario?.sessoes?.find(s => s.id === sessaoToDelete)?.titulo || "Sessão";
-
+      const sessaoTitle = questionario?.sessoes?.find((s) => s.id === sessaoToDelete)?.titulo || "Sessão";
       const response = await fetch(`${backendUrl}/sessoes/${sessaoToDelete}`, {
         method: "DELETE",
         headers: {
@@ -201,17 +269,15 @@ export default function CadastroQuestionarioScreen() {
           Authorization: `Bearer ${token}`,
         },
       });
-
       if (!response.ok) {
         throw new Error(`Erro ao deletar sessão: ${response.status}`);
       }
 
-      setQuestionario(prevQuestionario => {
-        if (!prevQuestionario) return null;
-
+      setQuestionario((prev) => {
+        if (!prev) return null;
         return {
-          ...prevQuestionario,
-          sessoes: prevQuestionario.sessoes.filter(sessao => sessao.id !== sessaoToDelete)
+          ...prev,
+          sessoes: prev.sessoes.filter((sessao) => sessao.id !== sessaoToDelete),
         };
       });
 
@@ -221,23 +287,18 @@ export default function CadastroQuestionarioScreen() {
 
       setIsDeleteDialogOpen(false);
       setSessaoToDelete(null);
-
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao deletar sessão:", error);
-
-      setSnackbarMessage(`Erro ao excluir sessão: ${error}`);
+      setSnackbarMessage(`Erro ao excluir sessão: ${error.message}`);
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
-
       setIsDeleteDialogOpen(false);
       setSessaoToDelete(null);
     }
   };
 
   const handleCloseSnackbar = (_event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') {
-      return;
-    }
+    if (reason === "clickaway") return;
     setOpenSnackbar(false);
   };
 
@@ -257,20 +318,13 @@ export default function CadastroQuestionarioScreen() {
           </Box>
         </Box>
         {isViewMode && questionario ? (
-          <QuestionarioInfoCard
-            questionario={questionario}
-          />
+          <QuestionarioInfoCard questionario={questionario} />
         ) : (
-          <QuestionarioForm
-            initialData={prepareFormData()}
-            onSave={handleSave}
-          />
+          <QuestionarioForm initialData={prepareFormData()} onSave={handleSave} />
         )}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography variant="h5">
-              Sessões
-            </Typography>
+            <Typography variant="h5">Sessões</Typography>
             <Box sx={{ width: "100%", marginX: 2 }}>
               <Divider />
             </Box>
@@ -282,15 +336,12 @@ export default function CadastroQuestionarioScreen() {
           </Box>
           {questionario &&
             questionario.sessoes &&
-            questionario.sessoes.length > 0 &&
             questionario.sessoes.map((sessao: Sessao) => (
               <SessaoInfoCard
                 key={sessao.id}
                 sessao={sessao}
                 onDelete={() => handleConfirmDeleteSessao(sessao.id)}
-                onEdit={(sessao: Sessao) => {
-                  handleOpenSessaoModal(sessao);
-                }}
+                onEdit={(sessao: Sessao) => handleOpenSessaoModal(sessao)}
                 onUpdate={fetchQuestionarioDetalhado}
               />
             ))}
@@ -300,7 +351,7 @@ export default function CadastroQuestionarioScreen() {
       <SessaoModal
         open={isSessaoModalOpen}
         onClose={handleCloseSessaoModal}
-        onSave={console.log}
+        onSave={handleSaveSessao}
         initialData={selectedSessao || undefined}
         questionarioId={questionarioId || ""}
       />
@@ -309,16 +360,18 @@ export default function CadastroQuestionarioScreen() {
         open={isDeleteDialogOpen}
         onClose={handleCancelDelete}
         onConfirm={handleDeleteSessao}
-        itemName={questionario?.sessoes?.find(s => s.id === sessaoToDelete)?.titulo || "esta sessão"}
+        itemName={
+          questionario?.sessoes?.find((s) => s.id === sessaoToDelete)?.titulo || "esta sessão"
+        }
       />
-      
+
       <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: "100%" }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>

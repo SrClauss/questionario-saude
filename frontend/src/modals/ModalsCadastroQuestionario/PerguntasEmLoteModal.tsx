@@ -184,7 +184,7 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                 <Divider sx={{ my: 2 }} />
 
                 {perguntas.map((p, idx) => (
-                    <Box key={idx} sx={{ mb: 2 }}>
+                    <Box key={idx} sx={{ mb: 2 , display: 'flex'}}>
                         <TextField
                             label={`Texto da Pergunta ${idx + 1}`}
                             fullWidth

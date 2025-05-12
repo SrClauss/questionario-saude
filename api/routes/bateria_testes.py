@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import BateriaTestes, ProfissionalSaude, Paciente, Questionario
+from models import BateriaTestes, ProfissionalSaude, Paciente, Questionario, Sessao
 from extensions import db
 from datetime import datetime
 from utils.auth import token_required
@@ -114,12 +114,44 @@ def delete_bateria_teste(id):
 @token_required(roles=['admin', 'profissional_saude', 'colaborador', 'paciente'])
 def get_baterias_by_paciente(paciente_id):
     """
-    Lista todas as baterias de testes de um paciente específico.
+    Lista todas as baterias de testes de um paciente específico,
+    retornando um json do tipo:
+      [{
+          'bateria': bateria.to_json(),
+          'qtd_perguntas': <total de perguntas nas sessões do questionário>,
+          'questionario': questionario.to_json()
+      }]
     """
     baterias = BateriaTestes.query.filter_by(paciente_id=paciente_id).all()
-    return jsonify([bateria.to_json() for bateria in baterias]), 200
+    result = []
+    for bateria in baterias:
+        # Busca a instância do questionário associado à bateria
+        questionario = Questionario.query.get(bateria.questionario_id)
+        # Carrega o questionário completo com sessões e perguntas
+        qtd_perguntas = 0
+        try:
+            questionario_completo = Questionario.query.options(
+                db.joinedload(Questionario.sessoes)
+                  .joinedload(Sessao.perguntas)
+            ).get(bateria.questionario_id)
 
-# Rota para listar baterias de testes por profissional de saúde
+            if questionario_completo is None:
+                raise Exception("Questionário não encontrado")
+
+            for sessao in questionario_completo.sessoes:
+                for pergunta in sessao.perguntas:
+                    qtd_perguntas += 1
+        except Exception as e:
+            print(f"Erro ao carregar questionário: {e}")
+            return jsonify({'error': 'Erro ao carregar questionário'}), 500
+        if questionario:
+            result.append({
+                'bateria': bateria.to_json(),
+                'qtd_perguntas': qtd_perguntas,
+                'questionario': questionario.to_json()
+            })
+    return jsonify(result), 200
+
 @bateria_testes_bp.route('/profissional/<profissional_id>', methods=['GET'])
 @token_required(roles=['admin', 'profissional_saude'])
 def get_baterias_by_profissional(profissional_id):
@@ -215,20 +247,48 @@ def batch_save_baterias_testes():
 
 
 
-@bateria_testes_bp.route('/ensure_perfil_de_saude', methods=['POST'])
+@bateria_testes_bp.route('/ensure_perfil_de_saude/<paciente_id>', methods=['POST'])
 @token_required(roles=['admin', 'profissional_saude', 'colaborador', 'paciente'])
-def ensure_perfil_de_saude():
+def ensure_perfil_de_saude(paciente_id):
+    
     """
-    Garante que o usuário tenha um perfil de saúde associado.
+    Garante que o paciente tenha um perfil de saúde associado.
     """
-    data = request.get_json()
-    user_id = data.get('user_id')
     
-    if not user_id:
-        return jsonify({'error': 'user_id é obrigatório'}), 400
+    # Verifica se o paciente existe
+    paciente = Paciente.query.get(paciente_id)
+    if not paciente:
+        return jsonify({'error': 'Paciente não encontrado'}), 404
     
-    paciente = Paciente.query.filter_by(user_id=user_id).first()
     
-    perfil_saude = Questionario.query.filter_by(title='Perfil de Saúde').first()
-    if not perfil_saude:
+    perfil_de_saude = Questionario.query.filter_by(titulo='Perfil de Saúde').first()
+    
+    if not perfil_de_saude:
         return jsonify({'error': 'Perfil de Saúde não encontrado'}), 404
+    
+    perfil_de_saude_paciente = BateriaTestes.query.filter_by(
+        paciente_id=paciente_id,
+        questionario_id=perfil_de_saude.id
+    ).first()
+    
+    if perfil_de_saude_paciente:
+        return jsonify({'message': 'Perfil de Saúde já existe para este paciente'}), 200
+    
+    perfil_de_saude_paciente = BateriaTestes(
+        profissional_saude_id=None,
+        paciente_id=paciente_id,
+        colaborador_id=None,
+        questionario_id=perfil_de_saude.id,
+        data_aplicacao=datetime.now(),
+        respostas={},
+        observacoes='',
+        is_completo=False
+    )
+    
+    db.session.add(perfil_de_saude_paciente)
+    db.session.commit()
+    return jsonify({'message': 'Perfil de Saúde criado com sucesso'}), 201
+
+
+
+

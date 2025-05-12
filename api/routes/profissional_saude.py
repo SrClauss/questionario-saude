@@ -41,6 +41,7 @@ def  create_profissional_saude():
             user_id=user.id,
             registro_profissional=data['registro_profissional'],
             tipo_registro=data['tipo_registro'],
+            perfil=data['perfil'],
             estado_registro=data['estado_registro'],
             enderecos=data['enderecos'],
             telefone=data['telefone']
@@ -72,6 +73,7 @@ def  get_profissional_saude(id):
 @profissional_saude_bp.route('/<id>', methods=['PUT'])
 @token_required(roles=['admin'])
 def  update_profissional_saude(id):
+    
     try:
         # Inicia uma transação
         profissional_saude = ProfissionalSaude.query.get(id)
@@ -79,7 +81,7 @@ def  update_profissional_saude(id):
             return jsonify({'error': 'Profissional de saúde não encontrado'}), 404
 
         data = request.get_json()
-
+        print(data)
         # Verifica se o e-mail já existe em outro usuário
         existing_user = User.query.filter_by(email=data['email']).first()
         if existing_user and existing_user.id != profissional_saude.user_id:
@@ -89,6 +91,7 @@ def  update_profissional_saude(id):
         profissional_saude.nome = data['nome']
         profissional_saude.registro_profissional = data['registro_profissional']
         profissional_saude.tipo_registro = data['tipo_registro']
+        profissional_saude.perfil = data['perfil']
         profissional_saude.estado_registro = data['estado_registro']
         profissional_saude.enderecos = data['enderecos']
         profissional_saude.telefone = data['telefone']
