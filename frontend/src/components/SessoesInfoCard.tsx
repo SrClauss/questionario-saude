@@ -20,7 +20,6 @@ import PerguntasEmLoteModal, { PerguntaData } from '../modals/ModalsCadastroQues
 import AlternativasLoteModal from '../modals/ModalsCadastroQuestionario/AlternativasLoteModal';
 import { Sessao, Pergunta } from '../types/questionario';
 import { useQuestionarioContext } from '../contexts/QuestionarioContext';
-import { useNavigate } from 'react-router-dom';
 import CustomTooltip from '../components/CustomTooltip';
 
 interface BatchAlternativa {
@@ -51,7 +50,6 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
   const [openAlternativasModal, setOpenAlternativasModal] = React.useState(false);
 
   const { hasBaterias } = useQuestionarioContext();
-  const navigate = useNavigate();
 
   // Abre o modal para editar a pergunta
   const handleOpenPerguntaModal = (e: React.MouseEvent<HTMLButtonElement>, pergunta: Pergunta) => {

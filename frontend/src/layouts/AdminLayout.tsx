@@ -25,7 +25,7 @@ import { Engineering } from "@mui/icons-material";
 import DoctorIconComponent from "../components/DoctorIconComponent";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../utils/auth";
-const Root = styled(Box)(({ theme }) => ({
+const Root = styled(Box)(() => ({
     display: "flex",
     flexDirection: "row",
     height: "100vh",
@@ -58,7 +58,7 @@ const Sidebar = styled(Box)(({ theme }) => ({
     },
 }));
 
-const Content = styled(Box)(({ theme }) => ({
+const Content = styled(Box)(() => ({
     flexGrow: 1,
     padding: "24px", // igual ao Sidebar
     backgroundColor: "white",
@@ -164,20 +164,26 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             Profissionais
                         </Typography>
                     </IconButton>
-                    {!isProfissional && (
+                    {
+                        /*
+                    !isProfissional && (
                         <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/colaborador")}>
                             <Engineering />
                             <Typography variant="body2" sx={{ ml: 1 }}>
                                 Colaboradores
                             </Typography>
                         </IconButton>
-                    )}
+                    )
+                    
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/dashboard")}>
                         <DashboardRounded />
                         <Typography variant="body2" sx={{ ml: 1 }}>
                             Dashboard
                         </Typography>
                     </IconButton>
+                    
+                    
+                    */}
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/questionario")}>
                         <BallotRounded />
                         <Typography variant="body2" sx={{ ml: 1 }}>
@@ -253,13 +259,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        <ButtonContent onClick={navigateTo("/dashboard")}>
-                            <DashboardRounded />
-                            <Typography variant="body2" sx={{ ml: 1 }}>
-                                Dashboard
-                            </Typography>
-                        </ButtonContent>
-                        <Divider sx={{ marginTop: 1.5 }} flexItem />
+                        {
+
+                            /*
+                            <ButtonContent onClick={navigateTo("/dashboard")}>
+                                <DashboardRounded />
+                                <Typography variant="body2" sx={{ ml: 1 }}>
+                                    Dashboard
+                                </Typography>
+                            </ButtonContent>
+                            <Divider sx={{ marginTop: 1.5 }} flexItem />
+                            
+                            */
+                        }
                         <ButtonContent onClick={navigateTo("/paciente")}>
                             <PeopleAlt />
                             <Typography variant="body2" sx={{ ml: 1 }}>
@@ -274,7 +286,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        {!isProfissional && (
+                        {
+                        /*
+                        !isProfissional && (
                             <>
                                 <ButtonContent onClick={navigateTo("/colaborador")}>
                                     <Engineering />
@@ -284,7 +298,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                 </ButtonContent>
                                 <Divider sx={{ marginTop: 1.5 }} flexItem />
                             </>
-                        )}
+                        )
+                            */}
                         <ButtonContent onClick={navigateTo("/questionario")}>
                             <BallotRounded />
                             <Typography variant="body2" sx={{ ml: 1 }}>
@@ -299,6 +314,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
+
+                        {/*
+                        
+                        
+                        
                         <ButtonContent onClick={navigateTo("/notificacoes")}>
                             <Badge badgeContent={1} color="error">
                                 <EmailIcon />
@@ -308,6 +328,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
+                        */
+
+
+                        }
                         {!isProfissional && (
                             <>
                                 <ButtonContent onClick={navigateTo("/configuracoes")}>

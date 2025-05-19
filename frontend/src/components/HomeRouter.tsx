@@ -1,9 +1,9 @@
 import { Navigate } from 'react-router-dom'
 import { auth } from '../utils/auth'
 import AdminHomeScreen from '../screens/AdminHomeScreen'
-import ProfissionalHomeScreen from '../screens/ProfissionalHomeScreen'
 import PacienteHomeScreen from '../screens/PacienteHomeScreen'
 import ColaboradorHomeScreen from '../screens/ColaboradorHomeScreen'
+import ProfissionalHomeScreen from '../screens/ProfissionalHomeScreen'
 
 export default function HomeRouter() {
   // Verifica se está autenticado
@@ -19,7 +19,7 @@ export default function HomeRouter() {
     case 'admin':
       return <AdminHomeScreen />
     case 'profissional_saude':
-      return <AdminHomeScreen />
+      return <ProfissionalHomeScreen />
     case 'paciente':
       return <PacienteHomeScreen />
     case 'colaborador':

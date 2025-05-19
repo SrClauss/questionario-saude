@@ -63,7 +63,7 @@ export default function AplicacaoQuestionarioPacienteScreen() {
   const handleSaveAplicacao = () => {
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
     const token = localStorage.getItem("@App:token");
-    const profissionalSaudeId = auth.getUserData()?.id;
+    const profissionalSaudeId = auth.getProfile()?.id
   
     const url = `${baseUrl}/baterias_testes/batch_save`;
     const payload = {
@@ -74,7 +74,7 @@ export default function AplicacaoQuestionarioPacienteScreen() {
         data_aplicacao: new Date().toISOString().split("T")[0],
         respostas: {},
         observacoes: "",
-        is_completo: true,
+        is_completo: false,
       })),
     };
 

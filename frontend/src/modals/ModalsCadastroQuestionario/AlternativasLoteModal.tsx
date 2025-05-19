@@ -25,7 +25,7 @@ interface AlternativasLoteModalProps {
     sessaoId: string;
 }
 
-const AlternativasLoteModal: React.FC<AlternativasLoteModalProps> = ({ open, onClose, onSave, sessaoId }) => {
+const AlternativasLoteModal: React.FC<AlternativasLoteModalProps> = ({ open, onClose, onSave}) => {
     const [globalTipo, setGlobalTipo] = useState<string>('texto');
     const [globalMetodoPontuacao, setGlobalMetodoPontuacao] = useState<string>('soma_item');
     const [alternativas, setAlternativas] = useState<Alternativa[]>([]);

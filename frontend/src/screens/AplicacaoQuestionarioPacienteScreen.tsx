@@ -8,7 +8,6 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
 import { Paciente } from "../types/user";
-import { auth } from "../utils/auth";
 import AdminLayout from "../layouts/AdminLayout";
 import StylizedTitle from "../components/StylizedTitle";
 import ResultPaciente from "../components/ResultPaciente";
@@ -51,7 +50,7 @@ export default function AplicacaoQuestionarioPacienteScreen() {
   const handleSaveBateriaTestes = () => {
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
     const token = localStorage.getItem("@App:token");
-    const profissionalSaudeId = auth.getUserData()?.id;
+    const profissionalSaudeId = JSON.parse(localStorage.getItem("@App:profile") || "{}")['id'];
     const url = `${baseUrl}/baterias_testes/batch_save`;
     const payload = {
       profissional_saude_id: profissionalSaudeId,
@@ -62,7 +61,7 @@ export default function AplicacaoQuestionarioPacienteScreen() {
         data_aplicacao: new Date().toISOString().split("T")[0],
         respostas: {},
         observacoes: "",
-        is_completo: true,
+        is_completo: false,
       })),
     };
 

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 from extensions import db, login_manager, mail
 from sqlalchemy import inspect
-from flask import jsonify
+from flask import jsonify, request
 from flask_cors import CORS
 import logging
 
@@ -14,7 +14,8 @@ import logging
 load_dotenv()
 
 def create_app():
-    app = Flask(__name__)
+    # Mude a configuração do static_url_path para vazio
+    app = Flask(__name__, static_folder="static/", static_url_path="")
     
     app.url_map.strict_slashes = False  # Permite rotas com e sem barra no final
     
@@ -32,7 +33,7 @@ def create_app():
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
     app.config['UPLOAD_FOLDER'] = 'uploads'  # Diretório para salvar as imagens
     app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1MB
-    app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
+    app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'webp'}  # Extensões permitidas
 
     # Cria o diretório de upload se não existir
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -75,10 +76,23 @@ def create_app():
     app.register_blueprint(bateria_testes_bp, url_prefix='/backend/baterias_testes')
     app.register_blueprint(populate_bp, url_prefix='/backend/populate')
 
-    
     # Printar tabelas do banco de dados
     with app.app_context():
         db.create_all()
+        
+        # Adicione este errorhandler para capturar qualquer rota 404 e servir o index.html
+    @app.errorhandler(404)
+    def page_not_found(e):
+        app.logger.debug(f"404 capturado, servindo index.html")
+        return send_from_directory(app.static_folder, "index.html")
+    
+    # Você ainda mantém essa rota para servir arquivos estáticos
+    @app.route("/<path:path>")
+    def serve_static(path):
+        if os.path.exists(os.path.join(app.static_folder, path)) and "." in path:
+            return send_from_directory(app.static_folder, path)
+        # Se não for estático, vai cair no 404 e ser tratado pelo handler acima
+        return "", 404
         
     return app
 

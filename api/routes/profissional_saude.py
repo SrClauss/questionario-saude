@@ -11,16 +11,21 @@ profissional_saude_bp = Blueprint('profissionais_saude', __name__)
 
 
 @profissional_saude_bp.route('/', methods=['GET'])
-@profissional_saude_bp.route('/profissionais_saude/<page>/<len>', methods=['GET'])
-@token_required(roles=['admin'])
-def  get_profissionais_saude(page=1, len=10):
+@profissional_saude_bp.route('/<page>/<len>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude', 'paciente'])
+def get_profissionais_saude(page=1, len=10):
     try:
         page = int(page)
         len = int(len)
-        profissionais_saude = ProfissionalSaude.query.paginate(page=page, per_page=len, error_out=False)
-        return jsonify([profissional_saude.to_json() for profissional_saude in profissionais_saude.items]), 200
+        pagination = ProfissionalSaude.query.paginate(page=page, per_page=len, error_out=False)
+        items = [profissional_saude.to_json() for profissional_saude in pagination.items]
+        totalPages = pagination.pages  # total de páginas disponíveis
+        return jsonify({
+            "items": items,
+            "totalPages": totalPages
+        }), 200
     except Exception as e:
-
+        print(e)
         return jsonify({'error': str(e)}), 500
 
 #rota administrativa que cria um profissional de saúde sem confirmação de email
@@ -229,5 +234,4 @@ def  get_profissionais_saude_by_name(name, page=1, len=10):
         
         print(e)
         return jsonify({'error': str(e)}), 500
-    
- 
+

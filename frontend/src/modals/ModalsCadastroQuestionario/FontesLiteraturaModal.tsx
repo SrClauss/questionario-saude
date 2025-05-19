@@ -11,7 +11,6 @@ import {
   IconButton,
   Paper,
   Alert,
-  FormHelperText
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { FonteBibliografica } from '../../types/questionario';

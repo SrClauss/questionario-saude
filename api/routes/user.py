@@ -13,7 +13,7 @@ from utils.auth import token_required
 user_bp = Blueprint('users', __name__)
 
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -127,8 +127,11 @@ def login():
 def upload_profile_picture(user_id):
     """
     Rota para upload de imagem de perfil.
+    Remove qualquer arquivo antigo do usuário antes de salvar o novo.
+    Aceita png, jpg, jpeg, gif e bmp.
     """
-    print(request)
+    import glob
+
     if 'file' not in request.files:
         return jsonify({'message': 'Nenhum arquivo enviado'}), 400
 
@@ -148,19 +151,35 @@ def upload_profile_picture(user_id):
     file.seek(0)
 
     try:
- 
-        filename = secure_filename(f"{user_id}.{file.filename.rsplit('.', 1)[1].lower()}")
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+
+        # Remove arquivos antigos do usuário (qualquer extensão suportada)
+        for old_file in glob.glob(os.path.join(upload_folder, f"{user_id}.*")):
+            os.remove(old_file)
+
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = secure_filename(f"{user_id}.{ext}")
+        filepath = os.path.join(upload_folder, filename)
 
         # Abre a imagem usando Pillow
         img = Image.open(file)
 
-        # Comprime a imagem
+        # Comprime e salva como JPEG se for jpg/jpeg, senão salva no formato original
         img_io = io.BytesIO()
-        img.save(img_io, 'JPEG', quality=70)  # Ajuste a qualidade conforme necessário
+        if ext in ['jpg', 'jpeg']:
+            img.save(img_io, 'JPEG', quality=70)
+        elif ext == 'png':
+            img.save(img_io, 'PNG', optimize=True)
+        elif ext == 'gif':
+            img.save(img_io, 'GIF')
+        elif ext == 'bmp':
+            img.save(img_io, 'BMP')
+        elif ext == 'webp':
+            img.save(img_io, 'WEBP', quality=70)
+        else:
+            img.save(img_io)
         img_io.seek(0)
 
-        # Salva a imagem comprimida
         with open(filepath, 'wb') as f:
             f.write(img_io.read())
 
@@ -173,18 +192,17 @@ def upload_profile_picture(user_id):
 def get_profile_picture(user_id):
     """
     Rota para obter a imagem de perfil.
+    Tenta encontrar a imagem nos formatos jpeg, jpg e png.
     """
     try:
-        filename = f"{user_id}.jpeg"  # Supondo que as imagens são salvas como JPG
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-
-        # Verifica se o arquivo existe
-        if not os.path.isfile(filepath):
-            return jsonify({'message': 'Imagem não encontrada'}), 404
-
-        # Envia o arquivo
-        return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
-
+        allowed_exts = ALLOWED_EXTENSIONS
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        for ext in allowed_exts:
+            filename = f"{user_id}.{ext}"
+            filepath = os.path.join(upload_folder, filename)
+            if os.path.isfile(filepath):
+                return send_from_directory(upload_folder, filename)
+        return jsonify({'message': 'Imagem não encontrada'}), 404
     except Exception as e:
         return jsonify({'message': f'Erro ao processar o arquivo: {str(e)}'}), 500
 
@@ -211,4 +229,3 @@ def set_password():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
-    

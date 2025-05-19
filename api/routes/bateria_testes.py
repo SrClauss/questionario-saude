@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
-from models import BateriaTestes, ProfissionalSaude, Paciente, Questionario, Sessao
+from models import Alternativa, BateriaTestes, Pergunta, ProfissionalSaude, Paciente, Questionario, Sessao
 from extensions import db
 from datetime import datetime
 from utils.auth import token_required
 from sqlalchemy import exc
+from dateutil.relativedelta import relativedelta
 
 bateria_testes_bp = Blueprint('baterias_testes', 'baterias_testes')
 
@@ -59,12 +60,11 @@ def get_bateria_teste(id):
         return jsonify({'error': 'Bateria de testes não encontrada'}), 404
     return jsonify(bateria.to_json()), 200
 
-# Rota para atualizar uma bateria de testes
-@bateria_testes_bp.route('/<id>', methods=['PUT'])
-@token_required(roles=['admin', 'profissional_saude'])
-def update_bateria_teste(id):
+@bateria_testes_bp.route('/<id>/complete', methods=['PUT'])
+@token_required(roles=['paciente'])
+def complete_bateria_teste(id):
     """
-    Atualiza uma bateria de testes.
+    Marca uma bateria de testes como completa.
     """
     data = request.get_json()
     try:
@@ -72,24 +72,37 @@ def update_bateria_teste(id):
         if not bateria:
             return jsonify({'error': 'Bateria de testes não encontrada'}), 404
 
-        # Converte data_aplicacao para datetime.date
-        data_aplicacao = datetime.strptime(data['data_aplicacao'], '%Y-%m-%d').date()
-
-        bateria.profissional_saude_id = data['profissional_saude_id']
-        bateria.paciente_id = data['paciente_id']
-        bateria.colaborador_id = data.get('colaborador_id')
-        bateria.questionario_id = data['questionario_id']
-        bateria.data_aplicacao = data_aplicacao
-        bateria.respostas = data.get('respostas')
-        bateria.observacoes = data.get('observacoes')
-        bateria.is_completo = data.get('is_completo', bateria.is_completo)
-
+        # Atualiza o status da bateria para completo
+        bateria.is_completo = True
+        bateria.respostas = data.get('respostas', bateria.respostas)
+        
         db.session.commit()
         return jsonify(bateria.to_json()), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
+@bateria_testes_bp.route('/<id>/respostas', methods=['PUT'])
+@token_required(roles=['admin', 'profissional_saude', 'paciente'])
+def update_bateria_teste_respostas(id):
+    
+    """
+    Atualiza as respostas de uma bateria de testes.
+    """
+    data = request.get_json()
+    try:
+        bateria = BateriaTestes.query.get(id)
+        if not bateria:
+            return jsonify({'error': 'Bateria de testes não encontrada'}), 404
+
+        # Atualiza apenas as respostas
+        bateria.respostas = data.get('respostas', bateria.respostas)
+        
+        db.session.commit()
+        return jsonify(bateria.to_json()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 # Rota para excluir uma bateria de testes
 @bateria_testes_bp.route('/<id>', methods=['DELETE'])
 @token_required(roles=['admin', 'profissional_saude'])
@@ -129,6 +142,11 @@ def get_baterias_by_paciente(paciente_id):
         questionario = Questionario.query.get(bateria.questionario_id)
         # Carrega o questionário completo com sessões e perguntas
         qtd_perguntas = 0
+        nome_profissional = None
+        if bateria.profissional_saude_id:
+            profissional = ProfissionalSaude.query.get(bateria.profissional_saude_id)
+            if profissional:
+                nome_profissional = profissional.nome
         try:
             questionario_completo = Questionario.query.options(
                 db.joinedload(Questionario.sessoes)
@@ -148,7 +166,10 @@ def get_baterias_by_paciente(paciente_id):
             result.append({
                 'bateria': bateria.to_json(),
                 'qtd_perguntas': qtd_perguntas,
-                'questionario': questionario.to_json()
+                'questionario': questionario.to_json(),
+                'nome_profissional': nome_profissional
+                
+                
             })
     return jsonify(result), 200
 
@@ -290,5 +311,101 @@ def ensure_perfil_de_saude(paciente_id):
     return jsonify({'message': 'Perfil de Saúde criado com sucesso'}), 201
 
 
+# Rota para obter uma bateria de testes pelo ID com questionário detalhado
+@bateria_testes_bp.route('/<id>/completo', methods=['GET'])
+@token_required(roles=['paciente'])
+def get_bateria_teste_completo(id):
+    """
+    Retorna uma bateria de testes pelo ID, juntamente com o questionário detalhado
+    (incluindo sessões, perguntas e alternativas).
+    """
+    bateria = BateriaTestes.query.get(id)
+    if not bateria:
+        return jsonify({'error': 'Bateria de testes não encontrada'}), 404
 
+    questionario = Questionario.query.get(bateria.questionario_id)
+    if not questionario:
+        return jsonify({'error': 'Questionário não encontrado'}), 404
+
+    # Carrega as sessões do questionário, juntamente com as perguntas e alternativas
+    sessoes = Sessao.query.filter_by(questionario_id=questionario.id).all()
+    sessoes_json = []
+    for sessao in sessoes:
+        perguntas = Pergunta.query.filter_by(sessao_id=sessao.id).all()
+        perguntas_json = []
+        for pergunta in perguntas:
+            alternativas = Alternativa.query.filter_by(pergunta_id=pergunta.id).all()
+            alternativas_json = [alternativa.to_json() for alternativa in alternativas]
+            
+            pergunta_json = pergunta.to_json()
+            pergunta_json['alternativas'] = alternativas_json
+            perguntas_json.append(pergunta_json)
+        
+        sessao_json = sessao.to_json()
+        sessao_json['perguntas'] = perguntas_json
+        sessoes_json.append(sessao_json)
+
+    questionario_json = questionario.to_json()
+    questionario_json['sessoes'] = sessoes_json
+
+    response = {
+        'bateria': bateria.to_json(),
+        'questionario': questionario_json
+    }
+
+    return jsonify(response), 200
+
+
+@bateria_testes_bp.route('/profissional/<profissional_id>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude'])
+def get_baterias_by_profissional_id(profissional_id):
+    """
+    Lista todas as baterias de testes de um profissional de saúde específico.
+    """
+    baterias = BateriaTestes.query.filter_by(profissional_saude_id=profissional_id).all()
+    return jsonify([bateria.to_json() for bateria in baterias]), 200
+# Rota para listar baterias de testes por colaborador
+
+@bateria_testes_bp.route('/dashboard_profissional/<profissional_id>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude'])
+def dashboard_profissional(profissional_id):
+    """
+    Conta quantos pacientes têm pelo menos uma bateria de testes associada ao profissional de saúde.
+    Fornece estatísticas importantes para o dashboard.
+    """
+    baterias_profissional = BateriaTestes.query.filter_by(profissional_saude_id=profissional_id).all()
+
+    # Total de baterias e baterias abertas
+    numero_total_baterias = len(baterias_profissional)
+    numero_total_baterias_abertas = len([bateria for bateria in baterias_profissional if not bateria.is_completo])
+
+    # IDs de pacientes únicos conectados ao profissional
+    pacientes_ids = {bateria.paciente_id for bateria in baterias_profissional}
+    qtd_pacientes = len(pacientes_ids)
+
+    # Evolução de pacientes conectados nos últimos 6 meses
+    hoje = datetime.now().date()
+    pacientes_por_mes = []
+    for i in range(6):
+        inicio_mes = (hoje - relativedelta(months=i)).replace(day=1)
+        fim_mes = (inicio_mes + relativedelta(months=1)) - relativedelta(days=1)
+        pacientes_mes = {bateria.paciente_id for bateria in baterias_profissional if inicio_mes <= bateria.data_aplicacao <= fim_mes}
+        pacientes_por_mes.append({
+            'mes': inicio_mes.strftime('%Y-%m'),
+            'qtd_pacientes': len(pacientes_mes)
+        })
+
+    # Inverter a ordem para exibir do mês mais antigo ao mais recente
+    pacientes_por_mes.reverse()
+
+    return jsonify({
+        'numero_total_baterias': numero_total_baterias,
+        'numero_total_baterias_abertas': numero_total_baterias_abertas,
+        'numero_total_baterias_por_profissional': numero_total_baterias,
+        'numero_total_baterias_abertas_por_profissional': numero_total_baterias_abertas,
+        'numero_baterias_ultimo_mes': len([bateria for bateria in baterias_profissional if bateria.data_aplicacao >= hoje.replace(day=1)]),
+        'numero_baterias_abertas_ultimo_mes': len([bateria for bateria in baterias_profissional if bateria.data_aplicacao >= hoje.replace(day=1) and not bateria.is_completo]),
+        'evolucao_pacientes': pacientes_por_mes,
+        'baterias_profissional': [bateria.to_json() for bateria in baterias_profissional],
+    }), 200
 

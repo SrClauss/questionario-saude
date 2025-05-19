@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import request, jsonify
+from flask import request, jsonify, abort
 import jwt
 from flask import current_app
 
@@ -18,7 +18,8 @@ def token_required(roles=None):
                 token = request.headers['Authorization'].split(" ")[1]
 
             if not token:
-                return jsonify({'message': 'Token não fornecido'}), 401
+                # Substitua por abort(401) para acionar o errorhandler
+                abort(401, description="Token não fornecido")
 
             try:
                 # Decodifica o token usando a SECRET_KEY do Flask
@@ -30,15 +31,15 @@ def token_required(roles=None):
 
                 # Verifica se a role do usuário está permitida
                 if roles and data.get('role') not in roles:
-                    return jsonify({'message': 'Usuário não autorizado'}), 403
+                    abort(403, description="Usuário não autorizado")
 
                 # Adiciona os dados do token ao request para uso posterior
                 request.user = data
 
             except jwt.ExpiredSignatureError:
-                return jsonify({'message': 'Token expirado'}), 401
+                abort(401, description="Token expirado")
             except jwt.InvalidTokenError:
-                return jsonify({'message': 'Token inválido'}), 401
+                abort(401, description="Token inválido")
 
             return f(*args, **kwargs)
         return decorated_function

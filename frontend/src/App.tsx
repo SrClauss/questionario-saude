@@ -11,6 +11,9 @@ import CadastroQuestionarioScreen from './screens/CadastroQuestionarioScreen'
 import ConfirmPasswordScreen from './screens/ConfirmPasswordScreen'
 import AplicacaoQuestionarioPacienteScreen from './screens/AplicacaoQuestionarioPacienteScreen'
 import AplicacaoPacienteQuestionario from './screens/AplicacaoPacienteQuestionarioScreen'
+import TestesAplicadosPacienteScreen from './screens/TestesAplicadosPacienteScreen'
+import PacienteBateriasScreen from './screens/PacienteBateriasScreen'
+import BateriaScreen from './screens/BateriaScreen'
 function App() {
   return (
     <BrowserRouter>
@@ -28,6 +31,11 @@ function App() {
             <Route path='/confirm-email/:token' element={<ConfirmPasswordScreen />} />
             <Route path='/aplicacao-questionario/:id' element={<AplicacaoQuestionarioPacienteScreen />} />
             <Route path='/aplicacao-paciente-questionario/:id' element={<AplicacaoPacienteQuestionario />} />
+            <Route path='/paciente-baterias-list' element={<TestesAplicadosPacienteScreen />} />
+            <Route path='/baterias/paciente/:id' element={<PacienteBateriasScreen />} />
+            <Route path='/bateria/:id' element={<BateriaScreen />} />
+
+
           </Routes>
       </ThemeProvider>
     </BrowserRouter>

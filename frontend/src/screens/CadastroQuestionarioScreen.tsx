@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Box,
   Divider,
@@ -50,6 +50,9 @@ function CadastroQuestionarioContent() {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem("@App:token");
 
+  const hasBaterias = useQuestionarioContext();
+
+  
   const [isSessaoModalOpen, setIsSessaoModalOpen] = useState(false);
   const [selectedSessao, setSelectedSessao] = useState<Sessao | null>(null);
 
@@ -60,7 +63,6 @@ function CadastroQuestionarioContent() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "warning" | "info">("success");
 
-  const { setHasBaterias, hasBaterias } = useQuestionarioContext();
 
   const handleSave = async (data: Questionario) => {
     try {
@@ -171,19 +173,25 @@ function CadastroQuestionarioContent() {
         });
         if (!response.ok) {
           console.error("Erro ao verificar baterias");
-          setHasBaterias(false);
           return;
         }
+
         const data = await response.json();
-        setHasBaterias(data.has_baterias);
+
+        if (data.has_baterias) {
+          hasBaterias.setHasBaterias(true);
+        } else {
+          hasBaterias.setHasBaterias(false);
+        }
+
+        
       } catch (error) {
         console.error("Erro no fetch has_baterias:", error);
-        setHasBaterias(false);
       }
     };
 
     fetchHasBaterias();
-  }, [questionarioId, backendUrl, token, setHasBaterias]);
+  }, [questionarioId, backendUrl, token]);
 
   const handleOpenSessaoModal = (sessao: Sessao) => {
     setSelectedSessao(sessao);

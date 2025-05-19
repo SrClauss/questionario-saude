@@ -118,7 +118,6 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
           backgroundColor: "white",
           width: { xs: "90%", sm: "60%", md: "40%" },
           margin: "auto",
-          marginTop: "10%",
           padding: 3,
           borderRadius: 2,
           maxHeight: "90vh",
@@ -173,6 +172,9 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
             <MenuItem value="booleano">Sim/Não</MenuItem>
             <MenuItem value="personalizado">Personalizado</MenuItem>
             <MenuItem value="numero">Número</MenuItem>
+            <MenuItem value="data">Data</MenuItem>
+            <MenuItem value="multipla_escolha">Multipla Escolha</MenuItem>
+            
           </Select>
           {errors.tipo_resposta && <FormHelperText>{errors.tipo_resposta}</FormHelperText>}
         </FormControl>

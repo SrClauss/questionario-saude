@@ -9,17 +9,25 @@ from utils.auth import token_required
 paciente_bp = Blueprint('pacientes', __name__)
 @paciente_bp.route('/', methods=['GET'])
 @paciente_bp.route('/<page>/<len>', methods=['GET'])
-
 @token_required(roles=['admin', 'profissional_saude', 'colaborador'])
 def get_pacientes_paginated(page=1, len=10):
     try:
         page = int(page)
         len = int(len)
-        pacientes = Paciente.query.paginate(page=page, per_page=len, error_out=False)
-        return jsonify([paciente.to_json() for paciente in pacientes.items]), 200
+        pacientes = Paciente.query.order_by(Paciente.nome).paginate(page=page, per_page=len, error_out=False)
+        
+        # Serializa os itens para JSON
+        items = [paciente.to_json() for paciente in pacientes.items]
+        
+        # Calcula o total de páginas
+        total_pages = pacientes.pages
+        
+        # Retorna os itens e o total de páginas
+        return jsonify({'items': items, 'totalPages': total_pages}), 200
     except Exception as e:
         print(f"Erro na rota GET /pacientes: {e}")  # Log do erro
         return jsonify({'error': str(e)}), 500
+
 
 @paciente_bp.route('/', methods=['POST'])
 @token_required(roles=['admin', 'profissional_saude', 'colaborador'])

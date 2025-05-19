@@ -59,7 +59,7 @@ class User(UserMixin, db.Model):
             {
                 'id': self.id,
                 'email': self.email,
-                'exp': datetime.now(timezone.utc) + timedelta(hours=2),
+                'exp': datetime.now(timezone.utc) + timedelta(hours=12),
                 'role': self.role,
             },
             app.config['SECRET_KEY'],

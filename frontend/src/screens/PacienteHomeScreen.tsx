@@ -1,13 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Container, Avatar, Fab, Snackbar, Alert, CircularProgress, Button } from '@mui/material';
-import { auth } from '../utils/auth';
-import { BateriaTestes } from '../types/baterias';
-import { Questionario } from '../types/questionario';
-import { Paciente } from '../types/user';
-import { useNavigate } from 'react-router-dom';
-import PieChartResultados from '../components/PieChartResultados';
-import AvatarProgresso from '../components/AvatarProgresso';
-import { ExitToApp } from '@mui/icons-material';
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  Snackbar,
+  Alert,
+  Button,
+  useTheme,
+  Divider
+} from "@mui/material";
+import { auth } from "../utils/auth";
+import { BateriaTestes } from "../types/baterias";
+import { Questionario } from "../types/questionario";
+import { Paciente } from "../types/user";
+import AvatarProgresso from "../components/AvatarProgresso";
+import {
+  BallotRounded,
+  FactCheckRounded,
+} from "@mui/icons-material";
+import PacienteLayout from "../layouts/PacienteLayout";
 
 export interface BateriaTestesState {
   bateria: BateriaTestes;
@@ -16,79 +26,35 @@ export interface BateriaTestesState {
 }
 
 const PacienteHomeScreen: React.FC = () => {
+  const theme = useTheme();
   const userId = auth.getUserData()?.id;
   const [baterias, setBaterias] = useState<BateriaTestesState[]>([]);
   const [paciente, setPaciente] = useState<Paciente | null>(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "warning" | "info">("success");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "warning" | "info"
+  >("success");
   const [userImage, setUserImage] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchPaciente = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/pacientes/get_paciente_by_user_id/${userId}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('@App:token')}`,
-            },
-          }
-        );
-        const data = await response.json();
-        setPaciente(data);
-      } catch (error) {
-        console.error('Error fetching paciente:', error);
-      }
-    };
-    if (userId) fetchPaciente();
-  }, [userId]);
-
-  useEffect(() => {
-    const ensurePerfilSaude = async () => {
+     const fetchBaterias = async () => {
       if (!paciente) return;
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/baterias_testes/ensure_perfil_de_saude/${paciente.id}`,
+          `${import.meta.env.VITE_BACKEND_URL}/baterias_testes/paciente/${paciente.id
+          }`,
           {
-            method: 'POST',
+            method: "GET",
             headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('@App:token')}`,
-            },
-            body: JSON.stringify({ paciente_id: paciente.id }),
-          }
-        );
-        const data = await response.json();
-        console.log('Perfil de saúde:', data);
-      } catch (error) {
-        console.error('Erro ensuring perfil de saúde:', error);
-        setSnackbarMessage("Erro ao garantir perfil de saúde");
-        setSnackbarSeverity("error");
-        setOpenSnackbar(true);
-      }
-    };
-    const fetchBaterias = async () => {
-      if (!paciente) return;
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/baterias_testes/paciente/${paciente.id}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('@App:token')}`,
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("@App:token")}`,
             },
           }
         );
         const data = await response.json();
         setBaterias(data);
       } catch (error) {
-        console.error('Erro ao buscar baterias:', error);
+        console.error("Erro ao buscar baterias:", error);
         setSnackbarMessage("Erro ao buscar baterias");
         setSnackbarSeverity("error");
         setOpenSnackbar(true);
@@ -102,9 +68,9 @@ const PacienteHomeScreen: React.FC = () => {
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/user/${userId}/image`,
           {
-            method: 'GET',
+            method: "GET",
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('@App:token')}`,
+              Authorization: `Bearer ${localStorage.getItem("@App:token")}`,
             },
           }
         );
@@ -112,14 +78,63 @@ const PacienteHomeScreen: React.FC = () => {
           const imageBlob = await response.blob();
           setUserImage(URL.createObjectURL(imageBlob));
         } else {
-          console.error('Erro ao buscar imagem do usuário:', response.status);
+          console.error("Erro ao buscar imagem do usuário:", response.status);
           setUserImage(null);
         }
       } catch (error) {
-        console.error('Erro ao buscar imagem do usuário:', error);
+        console.error("Erro ao buscar imagem do usuário:", error);
         setUserImage(null);
       } finally {
         setLoadingImage(false);
+      }
+    };
+
+  useEffect(() => {
+    const fetchPaciente = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL
+          }/pacientes/get_paciente_by_user_id/${userId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("@App:token")}`,
+            },
+          }
+        );
+        const data = await response.json();
+        setPaciente(data);
+      } catch (error) {
+        console.error("Error fetching paciente:", error);
+      }
+    };
+    if (userId) fetchPaciente();
+  }, [userId]);
+
+  useEffect(() => {
+    const ensurePerfilSaude = async () => {
+      if (!paciente) return;
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL
+          }/baterias_testes/ensure_perfil_de_saude/${paciente.id}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("@App:token")}`,
+            },
+            body: JSON.stringify({ paciente_id: paciente.id }),
+          }
+        );
+        const data = await response.json();
+        console.log("Perfil de saúde:", data);
+      } catch (error) {
+        console.error("Erro ensuring perfil de saúde:", error);
+        setSnackbarMessage("Erro ao garantir perfil de saúde");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
       }
     };
 
@@ -132,13 +147,13 @@ const PacienteHomeScreen: React.FC = () => {
     }
   }, [paciente, userId]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('@App:token');
-    navigate('/login');
-  };
+ 
 
-  const handleCloseSnackbar = (_event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') return;
+  const handleCloseSnackbar = (
+    _event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") return;
     setOpenSnackbar(false);
   };
 
@@ -149,62 +164,105 @@ const PacienteHomeScreen: React.FC = () => {
 
   // Verifica se o perfil de saúde tem 100% das respostas
   const perfilCompleto = perfilDeSaudeBateria
-    ? perfilDeSaudeBateria.bateria.respostas.length === perfilDeSaudeBateria.qtd_perguntas
+    ? Object.keys(perfilDeSaudeBateria.bateria.respostas).length ===
+    perfilDeSaudeBateria.qtd_perguntas
     : false;
 
   return (
-    <Container maxWidth="lg" sx={{ padding: 2, height: '90vh' }}>
-      <Fab
-        color="primary"
-        aria-label="logout"
-        sx={{
-          position: 'absolute',
-          bottom: { xs: 55, sm: 100 },
-          right: { xs: 32, sm: 150 },
-        }}
-        onClick={handleLogout}
-      >
-        <ExitToApp fontSize='large' />
-      </Fab>
+    <PacienteLayout>
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          backgroundColor: 'white',
-          height: '100%',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "white",
           padding: 2,
           borderRadius: 2,
-          boxShadow: 3,
-          overflow: 'auto',
         }}
       >
         <Typography variant="h6" gutterBottom>
-          Olá, {paciente?.nome}!
+          Olá, {paciente?.nome}! 
         </Typography>
         <AvatarProgresso
           perfilDeSaudeBateria={perfilDeSaudeBateria}
           loadingImage={loadingImage}
           userImage={userImage}
           pacienteNome={paciente?.nome}
+          onReload={fetchUserImage}
+
         />
         {!perfilCompleto && (
           <Button variant="contained" color="primary">
             Continuar Perfil de Saúde
           </Button>
         )}
+        <Divider sx={{ width: "100%", marginY: 2 }} />
+        <Box sx={{ marginTop: 2, display: "flex", flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
+          <Box
+            sx={{
+              backgroundColor: theme.palette.info.main,
+              display: "flex",
+              gap: 6,
+              borderRadius: 2,
+              padding: 1,
+            }}
+          >
+            <Box
+              sx={{ padding: 1, textAlign: "left", flexGrow: 1, color: "white" }}
+            >
+              <Typography variant="h3" sx={{ marginLeft: 1 }}>
+                {baterias.length}
+              </Typography>
+              <Typography variant="body1">
+                {baterias.length > 1 ? "Testes Aplicados" : "Teste Aplicado"}
+              </Typography>
+            </Box>
+            <BallotRounded sx={{ fontSize: "4em" }} htmlColor="white" />
+          </Box>
+
+          <Box
+            sx={{
+              backgroundColor: theme.palette.success.main,
+              display: "flex",
+              gap: 6,
+              borderRadius: 2,
+              padding: 1,
+            }}
+          >
+            <Box
+              sx={{ padding: 1, textAlign: "left", flexGrow: 1, color: "white" }}
+            >
+              <Typography variant="h3" sx={{ marginLeft: 1 }}>
+                {baterias.filter((b) => b.bateria.is_completo === true).length}
+              </Typography>
+              <Typography variant="body1">
+                {baterias.length > 1 ? "Testes Completos" : "Teste Completo"}
+              </Typography>
+            </Box>
+            <FactCheckRounded sx={{ fontSize: "4em" }} htmlColor="white" />
+          </Box>
+        </Box>
+
+
+
       </Box>
+
       <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </Container>
+    </PacienteLayout>
   );
 };
 
