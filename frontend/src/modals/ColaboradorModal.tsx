@@ -79,13 +79,14 @@ const ColaboradorModal: React.FC<ColaboradorModalProps> = ({
 
   useEffect(() => {
     if (colaborador) {
+      
       dispatch({ type: 'SET_NOME', payload: colaborador.nome });
       dispatch({ type: 'SET_CPF', payload: colaborador.cpf });
       dispatch({ type: 'SET_FUNCAO', payload: colaborador.funcao || '' });
       dispatch({ type: 'SET_TELEFONE', payload: colaborador.telefone || '' });
       dispatch({ type: 'SET_ENDERECOS', payload: colaborador.enderecos || [] });
 
-      fetch(`${import.meta.env.VITE_BACKEND_URL}/user/users/${colaborador.user_id}`, {
+      fetch(`${import.meta.env.VITE_BACKEND_URL}/user/${colaborador.user_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

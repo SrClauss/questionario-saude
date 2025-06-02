@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 from extensions import db, login_manager, mail
@@ -9,6 +10,8 @@ from sqlalchemy import inspect
 from flask import jsonify, request
 from flask_cors import CORS
 import logging
+
+
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -42,11 +45,18 @@ def create_app():
     login_manager.init_app(app)
     mail.init_app(app)  # Inicializa o Flask-Mail com o app
 
+    
+    
+    #inicializa o flask migrate
+    migrate = Migrate(app, db)
     # Configuração de logging
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logger = app.logger
     logger.setLevel(logging.DEBUG)
+    
+    
+    
 
     with app.app_context():
         from extensions import init_db
@@ -63,24 +73,28 @@ def create_app():
     from routes.alternativas import alternativas_bp
     from routes.bateria_testes import bateria_testes_bp
     from routes._populate import populate_bp
+    from routes.medico import medico_bp
+    from routes.avaliacao import avaliacao_bp
+    from routes.unidade_saude import unidade_saude_bp
+    from routes.laudo import laudo_bp
     
+    app.register_blueprint(user_bp, url_prefix='/backend/user', name='user_bp')
+    app.register_blueprint(profissional_saude_bp, url_prefix='/backend/profissionais_saude', name='profissional_saude_bp')
+    app.register_blueprint(paciente_bp, url_prefix='/backend/pacientes', name='paciente_bp')
+    app.register_blueprint(colaborador_bp, url_prefix='/backend/colaboradores', name='colaborador_bp')
+    app.register_blueprint(questionario_bp, url_prefix='/backend/questionario', name='questionario_bp')
+    app.register_blueprint(sessoes_bp, url_prefix='/backend/sessoes', name='sessoes_bp')
+    app.register_blueprint(perguntas_bp, url_prefix='/backend/perguntas', name='perguntas_bp')
+    app.register_blueprint(alternativas_bp, url_prefix='/backend/alternativas', name='alternativas_bp')
+    app.register_blueprint(bateria_testes_bp, url_prefix='/backend/baterias_testes', name='bateria_testes_bp')
+    app.register_blueprint(populate_bp, url_prefix='/backend/populate', name='populate_bp')
+    app.register_blueprint(medico_bp, url_prefix='/backend/medicos', name='medico_bp')
+    app.register_blueprint(avaliacao_bp, url_prefix='/backend/avaliacoes', name='avaliacao_bp')
+    app.register_blueprint(unidade_saude_bp, url_prefix='/backend/unidades_saude', name='unidade_saude_bp')
+    app.register_blueprint(laudo_bp, url_prefix='/backend/laudos', name='laudo_bp')
     
-    app.register_blueprint(user_bp, url_prefix='/backend/user')
-    app.register_blueprint(profissional_saude_bp, url_prefix='/backend/profissionais_saude')
-    app.register_blueprint(paciente_bp, url_prefix='/backend/pacientes')
-    app.register_blueprint(colaborador_bp, url_prefix='/backend/colaboradores')
-    app.register_blueprint(questionario_bp, url_prefix='/backend/questionario')
-    app.register_blueprint(sessoes_bp, url_prefix='/backend/sessoes')
-    app.register_blueprint(perguntas_bp, url_prefix='/backend/perguntas')
-    app.register_blueprint(alternativas_bp, url_prefix='/backend/alternativas')
-    app.register_blueprint(bateria_testes_bp, url_prefix='/backend/baterias_testes')
-    app.register_blueprint(populate_bp, url_prefix='/backend/populate')
-
-    # Printar tabelas do banco de dados
-    with app.app_context():
-        db.create_all()
-        
-        # Adicione este errorhandler para capturar qualquer rota 404 e servir o index.html
+ 
+    # Adicione este errorhandler para capturar qualquer rota 404 e servir o index.html
     @app.errorhandler(404)
     def page_not_found(e):
         app.logger.debug(f"404 capturado, servindo index.html")
@@ -93,6 +107,13 @@ def create_app():
             return send_from_directory(app.static_folder, path)
         # Se não for estático, vai cair no 404 e ser tratado pelo handler acima
         return "", 404
+
+    @app.route('/backend/hello', methods=['GET'])
+    def hello():
+        """
+        Rota simples para teste.
+        """
+        return jsonify({'message': 'Hello, world!'}), 200
         
     return app
 

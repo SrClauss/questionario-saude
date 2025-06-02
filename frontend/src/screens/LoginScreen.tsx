@@ -1,8 +1,10 @@
-import { Box, Typography, TextField, Button, useTheme, useMediaQuery, Snackbar, Alert } from "@mui/material"
-import { useState, useLayoutEffect } from 'react'
+import { Box, Typography, TextField, Button, useTheme, useMediaQuery, Snackbar, Alert, InputAdornment, IconButton } from "@mui/material"
+import { useState, useLayoutEffect} from 'react'
 import logoLaranja from '../assets/img/logo-laranja.png'
 import { useNavigate } from "react-router-dom"
 import { auth } from "../utils/auth"
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 export default function LoginScreen() {
     const navigate = useNavigate()
@@ -15,8 +17,9 @@ export default function LoginScreen() {
     const [feedback, setFeedback] = useState('');
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [feedbackSeverity, setFeedbackSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('error');
-
+    const [showPassword, setShowPassword] = useState(false);
     useLayoutEffect(() => {
+ 
         const calculateSize = () => {
             const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
 
@@ -36,7 +39,10 @@ export default function LoginScreen() {
         calculateSize();
         window.addEventListener('resize', calculateSize);
 
+        
+
         return () => window.removeEventListener('resize', calculateSize);
+        
     }, []);
 
     const handleLogin = async () => {
@@ -47,7 +53,7 @@ export default function LoginScreen() {
         setFeedbackSeverity('error')
 
         try {
-            const response = await fetch(`${baseUrl}/user/users/login`, {
+            const response = await fetch(`${baseUrl}/user/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -94,8 +100,13 @@ export default function LoginScreen() {
         setOpenSnackbar(false);
     };
 
+    const handleTogglePasswordVisibility = () => {
+        setShowPassword(prevState => !prevState);
+    };
+
     return (
         <Box sx={{ ...styles.mainContainer, p: isMobile ? 2 : 0 }}>
+                
             <Box sx={styles.formContainer(isMobile, containerSize)}>
                 {!isMobile && (
                     <Box sx={styles.imageBox(containerSize)}>
@@ -133,9 +144,24 @@ export default function LoginScreen() {
                         fullWidth
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        type="password"
+                        onKeyUp={(e) => e.key === 'Enter' && handleLogin()}
+                        type={showPassword ? "text" : "password"}
                         sx={styles.textField}
                         disabled={loading}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={handleTogglePasswordVisibility}
+                                        edge="end"
+                                        disabled={loading}
+                                    >
+                                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}
                     />
 
                     <Button

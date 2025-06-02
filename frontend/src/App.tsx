@@ -9,34 +9,35 @@ import ColaboradorScreen from './screens/ColaboradorScreen'
 import QuestionarioScreen from './screens/QuestionarioScreen'
 import CadastroQuestionarioScreen from './screens/CadastroQuestionarioScreen'
 import ConfirmPasswordScreen from './screens/ConfirmPasswordScreen'
-import AplicacaoQuestionarioPacienteScreen from './screens/AplicacaoQuestionarioPacienteScreen'
 import AplicacaoPacienteQuestionario from './screens/AplicacaoPacienteQuestionarioScreen'
 import TestesAplicadosPacienteScreen from './screens/TestesAplicadosPacienteScreen'
-import PacienteBateriasScreen from './screens/PacienteBateriasScreen'
-import BateriaScreen from './screens/BateriaScreen'
+import MedicoScreen from './screens/MedicoScreen'
+import UnidadeSaudeScreen from './screens/UnidadeSaudeScreen'
+import { UnidadeSaudeProvider } from './contexts/UnidadesSaudeContext'
+import AvaliacaoScreen from './screens/AvaliacaoScreen'
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
+        <UnidadeSaudeProvider>
           <Routes>
             <Route path="/" element={<HomeRouter />} />
             <Route path="/login" element={<LoginScreen />} />
             <Route path="/unauthorized" element={<div>Unauthorized</div>} />
-            <Route path='/paciente' element ={<PacienteScreen />} />
-            <Route path='/profissional' element ={<ProfissionalSaudeScreen />} />
-            <Route path='/colaborador' element ={<ColaboradorScreen />} />
-            <Route path='/questionario' element ={<QuestionarioScreen />} />
-            <Route path='/cadastro-questionario' element ={<CadastroQuestionarioScreen />} />
-            <Route path='/cadastro-questionario/:id' element ={<CadastroQuestionarioScreen />} />
+            <Route path='/paciente' element={<PacienteScreen />} />
+            <Route path='/profissional' element={<ProfissionalSaudeScreen />} />
+            <Route path='/colaborador' element={<ColaboradorScreen />} />
+            <Route path='/questionario' element={<QuestionarioScreen />} />
+            <Route path='/cadastro-questionario' element={<CadastroQuestionarioScreen />} />
+            <Route path='/cadastro-questionario/:id' element={<CadastroQuestionarioScreen />} />
             <Route path='/confirm-email/:token' element={<ConfirmPasswordScreen />} />
-            <Route path='/aplicacao-questionario/:id' element={<AplicacaoQuestionarioPacienteScreen />} />
             <Route path='/aplicacao-paciente-questionario/:id' element={<AplicacaoPacienteQuestionario />} />
             <Route path='/paciente-baterias-list' element={<TestesAplicadosPacienteScreen />} />
-            <Route path='/baterias/paciente/:id' element={<PacienteBateriasScreen />} />
-            <Route path='/bateria/:id' element={<BateriaScreen />} />
-
-
+            <Route path='/medico' element={<MedicoScreen />} />
+            <Route path='/unidade-saude' element={<UnidadeSaudeScreen />} />
+            <Route path='/avaliacao/:paciente_id' element={<AvaliacaoScreen />} />
           </Routes>
+        </UnidadeSaudeProvider>
       </ThemeProvider>
     </BrowserRouter>
   )

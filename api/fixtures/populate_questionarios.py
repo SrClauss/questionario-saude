@@ -1,11 +1,11 @@
-from flask import Blueprint, jsonify
+from flask import jsonify
 import json
-from models import Questionario, Sessao, Pergunta, Alternativa, User  # Certifique-se de importar o modelo User
+from models import Questionario, Sessao, Pergunta, Alternativa, User 
 from extensions import db
-from utils.auth import token_required
-populate_bp = Blueprint('populate', __name__)
+import logging
 
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 questionarios = [
     {
@@ -19799,42 +19799,22 @@ questionarios = [
     }
   ]
 
-
-@populate_bp.route('/popular-banco', methods=['POST'])
-
-
-
-
 def popular_banco():
     """
     Rota para popular o banco de dados com os questionários do arquivo JSON.
     """
+    logging.info("Iniciando a população do banco de dados...")
     try:
-        
-
-        # Cria o usuário admin
-        admin_email = 'admin@admin.com'
-        admin_password = 'admin'
-
-        # Verifica se o usuário já existe
-        admin_existente = db.session.query(User).filter_by(email=admin_email).first()
-        if not admin_existente:
-            admin_user = User(email=admin_email, is_active=True, role='admin')  # Define a role como 'admin'
-            admin_user.set_password(admin_password)  # Certifique-se de que o método set_password está implementado no modelo User
-            db.session.add(admin_user)
-            db.session.commit()
-            print(f"Usuário admin criado: {admin_email}")
-
-
-
-        # Contadores para o relatório
+ 
         questionarios_criados = 0
         sessoes_criadas = 0
         perguntas_criadas = 0
         alternativas_criadas = 0
-
+        logging.log
         # Itera sobre os questionários no JSON
+        logging.info("iterando sobre questionarios")
         for questionario_data in questionarios:
+            logging.info("criando questionario: %s", questionario_data['titulo'])
             # Verifica se o questionário já existe
             questionario_existente = db.session.query(Questionario).filter_by(
                 titulo=questionario_data['titulo'],
@@ -19858,6 +19838,7 @@ def popular_banco():
 
             # Itera sobre as sessões do questionário
             for sessao_data in questionario_data['sessoes']:
+                logging.info("criando sessao: %s", sessao_data['titulo'])
                 nova_sessao = Sessao(
                     questionario_id=novo_questionario.id,
                     titulo=sessao_data['titulo'],
@@ -19896,18 +19877,15 @@ def popular_banco():
 
         # Fecha a sessão
         db.session.close()
-
-        # Retorna uma resposta com o número de registros criados
-        return jsonify({
-            'status': 'success',
-            'message': 'Banco de dados populado com sucesso!',
-            'data': {
-                'questionarios_criados': questionarios_criados,
-                'sessoes_criadas': sessoes_criadas,
-                'perguntas_criadas': perguntas_criadas,
-                'alternativas_criadas': alternativas_criadas
-            }
-        }), 201
+        
+        
+        logging.info("População concluida com sucesso!")
+        logging.info("Informações sobre a população:")
+        logging.info("Questionários criados: %s", questionarios_criados)
+        logging.info("Sessões criadas: %s", sessoes_criadas)
+        logging.info("Perguntas criadas: %s", perguntas_criadas)
+        logging.info("Alternativas criadas: %s", alternativas_criadas)
+        
 
     except Exception as e:
         # Em caso de erro, faz rollback e retorna mensagem de erro
@@ -19915,7 +19893,13 @@ def popular_banco():
             db.session.rollback()
             db.session.close()
 
-        return jsonify({
-            'status': 'error',
-            'message': f'Erro ao popular o banco de dados: {str(e)}'
-        }), 500
+        print(f"Erro ao popular o banco de dados: {e}")
+        print("População cancelada.")
+        
+        
+
+if __name__ == "__main__":
+    from app import create_app
+    app = create_app()
+    with app.app_context():
+        popular_banco()

@@ -1,21 +1,22 @@
+
 import { useState, useEffect } from "react";
 import { Snackbar, Alert, Pagination } from "@mui/material";
 import SearchBar from "../components/SearchBar";
 import AdminLayout from "../layouts/AdminLayout";
-import PacienteModal from "../modals/PacienteModal";
-import { Paciente } from "../types/user";
-import { Add, BallotRounded, Delete, Edit, InfoRounded } from "@mui/icons-material";
+import MedicoModal from "../modals/MedicoModal";
+import { Medico } from "../types/user";
+import { Add, Delete, Edit,  } from "@mui/icons-material";
 import { Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
 import DeleteModal from "../modals/DeleteDialog";
 import { useNavigate } from "react-router-dom";
 import StylizedTitle from "../components/StylizedTitle";
 import { apiFetch } from "../utils/apiFetch";
-import AvaliacaoIconComponent from "../components/AvaliacaoIconComponent";
 
-export default function PacienteScreen() {
-    const [showPacienteModal, setShowPacienteModal] = useState(false);
-    const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null);
-    const [pacientes, setPacientes] = useState<Paciente[]>([]);
+
+export default function MedicoScreen() {
+    const [showMedicoModal, setShowMedicoModal] = useState(false);
+    const [selectedMedico, setSelectedMedico] = useState<Medico | null>(null);
+    const [medicos, setMedicos] = useState<Medico[]>([]);
     const [snackbar, setSnackbar] = useState({ open: false, type: '', message: '' });
     const [searchQuery, setSearchQuery] = useState<string>(''); // Armazena o último termo de busca
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -36,7 +37,7 @@ export default function PacienteScreen() {
 
         setSearchQuery(query); // Salva o termo de busca mais recente
 
-        const url = `${baseUrl}/pacientes/filter_by_name/${query}`;
+        const url = `${baseUrl}/medicos/filter_by_name/${query}/1/10`;
         try {
             const response = await apiFetch(url, {
                 method: 'GET',
@@ -46,16 +47,17 @@ export default function PacienteScreen() {
                 },
             });
             const data = await response.json();
-            setPacientes(data);
+            setMedicos(data);
+
+
         } catch (error) {
             console.error('Error fetching pacientes:', error);
         }
     };
-
-    const getPacientesPage = async (page: number) => {
+    const getMedicoPage = async (page: number) => {
         const baseUrl = import.meta.env.VITE_BACKEND_URL;
         const token = localStorage.getItem('@App:token');
-        const url = `${baseUrl}/pacientes/${page}/10`; // Ajuste o número de pacientes por página conforme necessário
+        const url = `${baseUrl}/medicos/${page}/10`; // Ajuste o número de médicos por página conforme necessário
         try {
             const response = await apiFetch(url, {
                 method: 'GET',
@@ -66,69 +68,69 @@ export default function PacienteScreen() {
             });
             const data = await response.json();
             //ordene data.items por nome
-            
-            setPacientes(data.items); // Assumindo que a API retorna um objeto com a propriedade 'items'
+
+            setMedicos(data.items); // Assumindo que a API retorna um objeto com a propriedade 'items'
             setTotalPages(data.totalPages); // Assumindo que a API retorna um objeto com a propriedade 'totalPages'
             setShowPagination(true);
         } catch (error) {
-            console.error('Error fetching pacientes:', error);
+            console.error('Error fetching medicos:', error);
         }
     };
 
-    const navigate = useNavigate();
 
     const handleModalSubmit = (feedback: { type: string; message: string }) => {
         setSnackbar({ open: true, type: feedback.type, message: feedback.message });
-        setShowPacienteModal(false);
+        setShowMedicoModal(false);
 
-        // Atualiza a lista de pacientes com o último termo de busca
+        // Atualiza a lista de médicos com o último termo de busca
         if (searchQuery) {
             handleFilter(searchQuery);
+        } else {
+            getMedicoPage(page);
         }
     };
-
-    const handleDelete = async (pacienteId: string) => {
+    const handleDelete = (medicoId: string) => {
         const baseUrl = import.meta.env.VITE_BACKEND_URL;
         const token = localStorage.getItem('@App:token');
-        const url = `${baseUrl}/pacientes/${pacienteId}`; // Mantendo sua rota original
-        
-        try {
-            const response = await apiFetch(url, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-            
+        const url = `${baseUrl}/medicos/${medicoId}`; // Mantendo sua rota original
+
+        apiFetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        }).then((response) => {
             if (response.ok) {
-                setSnackbar({ open: true, type: 'success', message: 'Paciente deletado com sucesso!' });
+                setSnackbar({ open: true, type: 'success', message: 'Médico deletado com sucesso!' });
                 setShowDeleteModal(false);
-                
-                // Apenas isto já deveria atualizar a lista após a exclusão
+
+                // Apenas isto já deveria atualizar a lista após a exclusão
                 if (searchQuery) {
                     handleFilter(searchQuery);
                 } else {
                     // Force a atualização da página atual mesmo sem uma busca
-                    await getPacientesPage(page);
+                    getMedicoPage(page);
                 }
             } else {
-                setSnackbar({ open: true, type: 'error', message: 'Erro ao deletar paciente.' });
+                setSnackbar({ open: true, type: 'error', message: 'Erro ao deletar médico.' });
             }
-        } catch (error) {
-            console.error('Error deleting paciente:', error);
-            setSnackbar({ open: true, type: 'error', message: 'Erro ao deletar paciente.' });
-        }
-    };
+        })
+            .catch((error) => {
+                console.error('Error deleting paciente:', error);
+            })
 
+    };
     const handleChangePage = (_event: any, value: number) => {
         setPage(value);
-        getPacientesPage(value);
+        getMedicoPage(value);
     };
 
     useEffect(() => {
-        getPacientesPage(1); // Carrega a primeira página ao montar o componente
+        getMedicoPage(1); // Carrega a primeira página ao montar o componente
     }, []);
+
+
 
     return (
         <AdminLayout>
@@ -137,64 +139,47 @@ export default function PacienteScreen() {
                     paddingTop: { xs: 4, sm: 4, md: 0 },
                 }}
             >
-                <StylizedTitle title="Pacientes" />
+                <StylizedTitle title="Médicos" />
                 <SearchBar onSearch={handleFilter} />
-                {showPacienteModal && (
-                    <PacienteModal
-                        open={showPacienteModal}
-                        onClose={() => setShowPacienteModal(false)}
+                {showMedicoModal && (
+                    <MedicoModal
+                        open={showMedicoModal}
+                        onClose={() => setShowMedicoModal(false)}
                         onSubmit={handleModalSubmit} // Chama a função para atualizar a lista e exibir a snackbar
-                        paciente={selectedPaciente}
-                        mode={selectedPaciente ? 'edit' : 'create'}
+                        medico={selectedMedico}
+                        mode={selectedMedico ? 'edit' : 'create'}
                     />
                 )}
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', marginY: 2 }}>
-                    {pacientes?.length > 0 && (
+                    {medicos?.length > 0 && (
                         <Table>
                             <TableHead>
                                 <TableRow>
                                     <TableCell>Nome</TableCell>
-                                    <TableCell>Data Nascimento</TableCell>
+                                    <TableCell>CRM</TableCell>
                                     <TableCell>Info</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {pacientes.map((paciente) => (
-                                    <TableRow key={paciente.id}>
-                                        <TableCell>{paciente.nome}</TableCell>
+                                {medicos.map((medico) => (
+                                    <TableRow key={medico.id}>
+                                        <TableCell>{medico.nome}</TableCell>
+                                        <TableCell>{medico.crm}</TableCell>
                                         <TableCell>
-                                            {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
-                                        </TableCell>
-                                        <TableCell>
-                                            <IconButton
-                                                onClick={() => {navigate(`/baterias/paciente/${paciente.id}`)}}
-                                            >
-                                                <InfoRounded
-                                                    color="info"
-                                                    
-                                                    />
-                                            </IconButton>
-                                            <IconButton
-                                                onClick={() => navigate(`/avaliacao/${paciente.id}`)}
-                                            >
-                                                <AvaliacaoIconComponent
-                                                    color="secoundary"
-                                                />
-                                            </IconButton>
                                             <IconButton>
                                                 <Edit
                                                     color="success"
                                                     onClick={() => {
-                                                        setSelectedPaciente(paciente);
-                                                        setShowPacienteModal(true);
+                                                        setSelectedMedico(medico);
+                                                        setShowMedicoModal(true);
                                                     }}
                                                 />
                                             </IconButton>
                                             <IconButton
                                                 color="error"
                                                 onClick={() => {
-                                                    setSelectedPaciente(paciente);
+                                                    setSelectedMedico(medico);
                                                     setShowDeleteModal(true);
                                                 }}
                                             >
@@ -215,13 +200,14 @@ export default function PacienteScreen() {
                         />
                     )}
                 </Box>
-                <Tooltip title="Adicionar Paciente" arrow>
+
+                <Tooltip title="Adicionar Médico" arrow>
                     <Fab
                         color="primary"
                         aria-label="add"
                         onClick={() => {
-                            setSelectedPaciente(null);
-                            setShowPacienteModal(true);
+                            setSelectedMedico(null);
+                            setShowMedicoModal(true);
                         }}
                         style={{ position: 'fixed', bottom: 16, right: 32 }}
                     >
@@ -243,22 +229,23 @@ export default function PacienteScreen() {
                     </Alert>
                 </Snackbar>
 
-                {/* Modal fora do loop */}
-                {showDeleteModal && selectedPaciente && (
+   
+                {showDeleteModal && selectedMedico && (
                     <DeleteModal
                         open={showDeleteModal}
                         onClose={() => setShowDeleteModal(false)}
                         onConfirm={() => {
-                            handleDelete(selectedPaciente.id); // Agora usa o ID correto
+                            handleDelete(selectedMedico.id); // Agora usa o ID correto
                             setShowDeleteModal(false);
                         }}
                     />
                 )}
-
-                {
-                    
-                }
             </Box>
         </AdminLayout>
-    );
+    )
+
+
 }
+
+
+

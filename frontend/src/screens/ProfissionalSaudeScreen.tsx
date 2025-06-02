@@ -7,8 +7,10 @@ import ProfissionalSaudeModal from "../modals/ProfissionalSaudeModal";
 import { ProfissionalSaude } from "../types/user";
 import DeleteModal from "../modals/DeleteDialog";
 import StylizedTitle from "../components/StylizedTitle";
+import { UnidadeSaudeContext } from "../contexts/UnidadesSaudeContext";
 
 export default function ProfissionalSaudeScreen() {
+    const unidadeSaude = React.useContext(UnidadeSaudeContext);
     const [showProfissionalSaudeModal, setShowProfissionalSaudeModal] = React.useState(false);
     const [selectedProfissionalSaude, setSelectedProfissionalSaude] = React.useState<ProfissionalSaude | null>(null);
     const [profissionaisSaude, setProfissionaisSaude] = React.useState<ProfissionalSaude[]>([]);
@@ -151,7 +153,8 @@ export default function ProfissionalSaudeScreen() {
                     paddingTop: { xs: 4, sm: 4, md: 0 },
                 }}
             >
-                <StylizedTitle title="Profissionais de Saúde" />
+                <div>{JSON.stringify(unidadeSaude.unidadesSaude)}</div>
+                <StylizedTitle title="Terapeutas" />
                 <SearchBar onSearch={handleFilter} />
                 {showProfissionalSaudeModal && (
                     <ProfissionalSaudeModal

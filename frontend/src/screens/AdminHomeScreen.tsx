@@ -6,6 +6,8 @@ export default function AdminHomeScreen() {
 
     return (
         <AdminLayout>
+
+            
             <StylizedTitle title="Home" />
             <div>{JSON.stringify(auth.getToken())}</div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>

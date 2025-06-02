@@ -26,6 +26,7 @@ def create_bateria_teste():
     Cria uma nova bateria de testes.
     """
     data = request.get_json()
+
     try:
         # Converte data_aplicacao para datetime.date
         data_aplicacao = datetime.strptime(data['data_aplicacao'], '%Y-%m-%d').date()
@@ -35,6 +36,7 @@ def create_bateria_teste():
             paciente_id=data['paciente_id'],
             colaborador_id=data.get('colaborador_id'),
             questionario_id=data['questionario_id'],
+            avaliacao_id=data['avaliacao_id'],
             data_aplicacao=data_aplicacao,
             respostas=data.get('respostas'),
             observacoes=data.get('observacoes'),
@@ -231,7 +233,9 @@ def batch_save_baterias_testes():
     # Validar profissional_saude_id no payload principal
     profissional_saude_id = data.get('profissional_saude_id')
     if not profissional_saude_id:
-        return jsonify({'error': 'profissional_saude_id é obrigatório'}), 400
+
+        return jsonify({'error': 'profissional_saude_id é obrigatório'}), 403
+    
     
     try:
         # Iterar sobre a lista de baterias, não sobre o objeto principal
@@ -258,11 +262,14 @@ def batch_save_baterias_testes():
         return jsonify({'message': 'Baterias de testes salvas com sucesso'}), 201
     except exc.SQLAlchemyError as e:
         db.session.rollback()
+        print(f"Erro ao salvar baterias de testes: {e}")
         return jsonify({'error': str(e)}), 400
     except ValueError as e:
+        print(f"Erro de valor: {e}")
         db.session.rollback()
         return jsonify({'error': f'Erro de valor: {str(e)}'}), 400
     except Exception as e:
+        print(f"Erro inesperado: {e}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
@@ -282,7 +289,7 @@ def ensure_perfil_de_saude(paciente_id):
         return jsonify({'error': 'Paciente não encontrado'}), 404
     
     
-    perfil_de_saude = Questionario.query.filter_by(titulo='Perfil de Saúde').first()
+    perfil_de_saude = Questionario.query.filter_by(titulo="Questionário Detalhado de Perfil Básico de Saúde").first()
     
     if not perfil_de_saude:
         return jsonify({'error': 'Perfil de Saúde não encontrado'}), 404
@@ -408,4 +415,70 @@ def dashboard_profissional(profissional_id):
         'evolucao_pacientes': pacientes_por_mes,
         'baterias_profissional': [bateria.to_json() for bateria in baterias_profissional],
     }), 200
+
+#incluir no arquivo de produção
+
+@bateria_testes_bp.route('/datas/<data_inicial>/<data_final>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude'])
+def get_baterias_by_datas(data_inicial, data_final):
+    """
+    Lista todas as baterias de testes entre duas datas.
+    """
+    try:
+        data_inicial = datetime.strptime(data_inicial, '%Y-%m-%d').date()
+        data_final = datetime.strptime(data_final, '%Y-%m-%d').date()
+        
+        baterias = BateriaTestes.query.filter(BateriaTestes.data_aplicacao.between(data_inicial, data_final)).all()
+        return jsonify([bateria.to_json() for bateria in baterias]), 200
+    except ValueError:
+        return jsonify({'error': 'Formato de data inválido. Use YYYY-MM-DD.'}), 400
+    
+    
+    
+    
+@bateria_testes_bp.route('/nome_paciente/<nome_paciente>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude'])
+
+def get_baterias_by_nome_paciente(nome_paciente):
+    """
+    Lista todas as baterias de testes de um grupo de pacientes com um mesma substring no nome.
+    """
+    
+    
+    pacientes = Paciente.query.filter(Paciente.nome.ilike(f'%{nome_paciente}%')).all()
+    if not pacientes:
+        return jsonify({'error': 'Nenhum paciente encontrado com esse nome'}), 404
+    pacientes_ids = [paciente.id for paciente in pacientes]
+    
+    baterias = BateriaTestes.query.filter(BateriaTestes.paciente_id.in_(pacientes_ids)).all()
+    baterias.sort(key=lambda x: x.data_aplicacao, reverse=True)
+    return jsonify([bateria.to_json() for bateria in baterias]), 200
+
+
+        
+    
+
+@bateria_testes_bp.route('/titulo_descricao_questionario/<criterio>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude'])
+def get_baterias_by_titulo_descricao_questionario(criterio):
+    """
+    Lista todas as baterias de testes de um grupo de questionários com um mesma substring no título ou descrição.
+    """
+    
+    questionarios = Questionario.query.filter(
+        (Questionario.titulo.ilike(f'%{criterio}%')) | 
+        (Questionario.descricao.ilike(f'%{criterio}%'))
+    ).all()
+    if not questionarios:
+        return jsonify({'error': 'Nenhum questionário encontrado com esse critério'}), 404
+    
+    questionarios_ids = [questionario.id for questionario in questionarios]
+    
+    baterias = BateriaTestes.query.filter(BateriaTestes.questionario_id.in_(questionarios_ids)).all()
+    baterias.sort(key=lambda x: x.data_aplicacao, reverse=True)
+    return jsonify([bateria.to_json() for bateria in baterias]), 200
+
+    
+
+
 

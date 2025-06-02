@@ -19,7 +19,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ open, onClose, onConfirm, ite
             <DialogTitle id="delete-dialog-title">Confirmar Deleção</DialogTitle>
             <DialogContent>
                 <DialogContentText id="delete-dialog-description">
-                    {`Tem certeza que deseja deletar ${itemName ? `"${itemName}"` : 'este item'}? Esta ação não pode ser desfeita.`}
+                    {`Tem certeza que deseja deletar ${itemName ? `${itemName}` : 'este item'}? Esta ação não pode ser desfeita.`}
                 </DialogContentText>
             </DialogContent>
             <DialogActions>

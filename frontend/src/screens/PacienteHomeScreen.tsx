@@ -18,7 +18,7 @@ import {
   FactCheckRounded,
 } from "@mui/icons-material";
 import PacienteLayout from "../layouts/PacienteLayout";
-
+import { useNavigate } from "react-router-dom";
 export interface BateriaTestesState {
   bateria: BateriaTestes;
   qtd_perguntas: number;
@@ -27,6 +27,7 @@ export interface BateriaTestesState {
 
 const PacienteHomeScreen: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const userId = auth.getUserData()?.id;
   const [baterias, setBaterias] = useState<BateriaTestesState[]>([]);
   const [paciente, setPaciente] = useState<Paciente | null>(null);
@@ -147,7 +148,11 @@ const PacienteHomeScreen: React.FC = () => {
     }
   }, [paciente, userId]);
 
- 
+  const navigateToPerfilDeSaude = () => {
+    if (perfilDeSaudeBateria) {
+      navigate(`/bateria/${perfilDeSaudeBateria.bateria.id}`);
+    }
+  };
 
   const handleCloseSnackbar = (
     _event?: React.SyntheticEvent | Event,
@@ -159,7 +164,7 @@ const PacienteHomeScreen: React.FC = () => {
 
   // Filtra a bateria cujo questionário tenha o título "Perfil de Saúde"
   const perfilDeSaudeBateria = baterias.find(
-    (b) => b.questionario.titulo === "Perfil de Saúde"
+    (b) => b.questionario.titulo === "Questionário Detalhado de Perfil Básico de Saúde"
   );
 
   // Verifica se o perfil de saúde tem 100% das respostas
@@ -193,7 +198,7 @@ const PacienteHomeScreen: React.FC = () => {
 
         />
         {!perfilCompleto && (
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={navigateToPerfilDeSaude}>
             Continuar Perfil de Saúde
           </Button>
         )}

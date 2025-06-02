@@ -10,15 +10,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from app import create_app
 from extensions import db
+from dotenv import load_dotenv
+import os
 
-
-
+load_dotenv()
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
     email = Column(String(120), unique=True, nullable=False)
-    password_hash = Column(String(128), nullable=True)
+    password_hash = Column(String(256), nullable=True)
     role= Column(String(20), nullable=False, default='paciente')
     is_active = Column(Boolean, default=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -43,6 +44,13 @@ class User(UserMixin, db.Model):
         uselist=False,
         cascade="all, delete-orphan"
     )
+    medico = relationship(
+        "Medico",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -54,7 +62,8 @@ class User(UserMixin, db.Model):
         return f"<User(email='{self.email}')>"
 
     def to_json(self):
-        app = create_app()
+       
+        secret_key = os.getenv('SECRET_KEY')
         token = jwt.encode(
             {
                 'id': self.id,
@@ -62,7 +71,7 @@ class User(UserMixin, db.Model):
                 'exp': datetime.now(timezone.utc) + timedelta(hours=12),
                 'role': self.role,
             },
-            app.config['SECRET_KEY'],
+            secret_key,
             algorithm='HS256'
         ) if self.id else None
 
@@ -77,7 +86,7 @@ class User(UserMixin, db.Model):
         }
 
 
-class ProfissionalSaude(db.Model):  # Alterado: Base -> db.Model
+class ProfissionalSaude(db.Model):  
     __tablename__ = 'profissionais_saude'
 
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
@@ -93,7 +102,6 @@ class ProfissionalSaude(db.Model):  # Alterado: Base -> db.Model
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    # Relacionamentos
     user = relationship("User", back_populates="profissional_saude")
     baterias_testes = relationship(
         "BateriaTestes",
@@ -120,7 +128,7 @@ class ProfissionalSaude(db.Model):  # Alterado: Base -> db.Model
         }
 
 
-class Paciente(db.Model):  # Alterado: Base -> db.Model
+class Paciente(db.Model):  
     __tablename__ = 'pacientes'
 
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
@@ -137,6 +145,11 @@ class Paciente(db.Model):  # Alterado: Base -> db.Model
     user = relationship("User", back_populates="paciente")
     baterias_testes = relationship(
         "BateriaTestes",
+        back_populates="paciente",
+        cascade="all, delete-orphan"
+    )
+    avaliacoes = relationship(
+        "Avaliacao",
         back_populates="paciente",
         cascade="all, delete-orphan"
     )
@@ -158,7 +171,7 @@ class Paciente(db.Model):  # Alterado: Base -> db.Model
         }
 
 
-class Colaborador(db.Model):  # Alterado: Base -> db.Model
+class Colaborador(db.Model):
     __tablename__ = 'colaboradores'
 
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
@@ -183,6 +196,7 @@ class Colaborador(db.Model):  # Alterado: Base -> db.Model
         return f"<Colaborador(nome='{self.nome}')>"
 
     def to_json(self):
+    
         return {
             'id': self.id,
             'nome': self.nome,
@@ -196,7 +210,7 @@ class Colaborador(db.Model):  # Alterado: Base -> db.Model
         }
 
 
-class Questionario(db.Model):  # Alterado: Base -> db.Model
+class Questionario(db.Model):
     """
     Modelo que representa um questionário ou teste.
 
@@ -225,7 +239,6 @@ class Questionario(db.Model):  # Alterado: Base -> db.Model
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    # Relacionamentos
     sessoes = relationship(
         "Sessao",
         back_populates="questionario",
@@ -254,7 +267,7 @@ class Questionario(db.Model):  # Alterado: Base -> db.Model
         }
 
 
-class Sessao(db.Model):  # Alterado: Base -> db.Model
+class Sessao(db.Model):
     """
     Modelo que representa uma sessão dentro de um questionário.
 
@@ -307,8 +320,8 @@ class Sessao(db.Model):  # Alterado: Base -> db.Model
             'titulo': self.titulo,
             'descricao': self.descricao,
             'ordem': self.ordem,
-            'pergunta_condicional': self.pergunta_condicional,  # Adicionado ao JSON
-            'respostas_condicionais': self.respostas_condicionais,  # Adicionado ao JSON
+            'pergunta_condicional': self.pergunta_condicional,
+            'respostas_condicionais': self.respostas_condicionais,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -319,7 +332,7 @@ class Sessao(db.Model):  # Alterado: Base -> db.Model
         return json_sessao
 
 
-class Pergunta(db.Model):  # Alterado: Base -> db.Model
+class Pergunta(db.Model):
     """
     Modelo que representa uma pergunta dentro de uma sessão.
 
@@ -343,8 +356,8 @@ class Pergunta(db.Model):  # Alterado: Base -> db.Model
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
     sessao_id = Column(String(26), ForeignKey('sessoes.id', ondelete='CASCADE'))
     texto = Column(Text, nullable=False)
-    tipo_resposta = Column(String(20), nullable=False)
-    metodo_pontuacao = Column(String(20))
+    tipo_resposta = Column(String(50), nullable=False)
+    metodo_pontuacao = Column(String(50))
     ordem = Column(Integer, nullable=False)
     is_obrigatoria = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -376,7 +389,7 @@ class Pergunta(db.Model):  # Alterado: Base -> db.Model
         }
 
 
-class Alternativa(db.Model):  # Alterado: Base -> db.Model
+class Alternativa(db.Model):
     """
     Modelo que representa uma alternativa de resposta para uma pergunta.
 
@@ -420,26 +433,33 @@ class Alternativa(db.Model):  # Alterado: Base -> db.Model
         }
 
 
-class BateriaTestes(db.Model):  # Alterado: Base -> db.Model
+class BateriaTestes(db.Model):  
     __tablename__ = 'baterias_testes'
 
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
     profissional_saude_id = Column(String(26), ForeignKey('profissionais_saude.id', ondelete='CASCADE'))
-    paciente_id = Column(String(26), ForeignKey('pacientes.id', ondelete='CASCADE'))
+    paciente_id = Column(String(26), ForeignKey('pacientes.id', ondelete='CASCADE'), nullable=False)
     colaborador_id = Column(String(26), ForeignKey('colaboradores.id', ondelete='CASCADE'), nullable=True)
     questionario_id = Column(String(26), ForeignKey('questionarios.id', ondelete='CASCADE'))
     data_aplicacao = Column(Date, nullable=False)
     respostas = Column(JSON, nullable=True)
-    observacoes = Column(Text)
+    observacoes = Column(Text, nullable=True)
     is_completo = Column(Boolean, default=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-
-    # Relacionamentos
+    avaliacao_id = Column(String(26), ForeignKey('avaliacoes.id', ondelete='CASCADE'), nullable=True)
+    
+    
     profissional_saude = relationship("ProfissionalSaude", back_populates="baterias_testes")
     paciente = relationship("Paciente", back_populates="baterias_testes")
     colaborador = relationship("Colaborador", back_populates="baterias_testes")
     questionario = relationship("Questionario", back_populates="baterias_testes")
+    
+    avaliacao = relationship(
+        "Avaliacao",
+        back_populates="baterias_testes"
+    )
+
 
     def __repr__(self):
         return f"<BateriaTestes(paciente_id='{self.paciente_id}', questionario_id='{self.questionario_id}')>"
@@ -458,3 +478,155 @@ class BateriaTestes(db.Model):  # Alterado: Base -> db.Model
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+
+
+class Medico(db.Model):
+    __tablename__ = 'medicos'
+    
+    id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
+    user_id = Column(String(26), ForeignKey('users.id', ondelete='CASCADE'), unique=True)
+    nome = Column(String(100), nullable=False, index=True)
+    crm = Column(String(20), unique=True, nullable=False)
+    especialidade = Column(String(100))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    # Relacionamentos
+    user = relationship("User", back_populates="medico")
+    avaliacoes = relationship("Avaliacao", back_populates="medico")
+
+    def __repr__(self):
+        return f"<Médico'(nome='{self.nome}', crm='{self.crm}')>"
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'nome': self.nome,
+            'crm': self.crm,
+            'especialidade': self.especialidade,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+
+class UnidadeSaude(db.Model):
+    __tablename__ = 'unidades_saude'
+
+    id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
+    nome = Column(String(100), nullable=False)
+    cnpj = Column(String(14), unique=True, nullable=False)
+    endereco = Column(JSON, nullable=False)
+    telefone = Column(String(20))
+    email = Column(String(120))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    
+    avaliacao = relationship(
+        "Avaliacao",
+        back_populates="unidade_saude",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+    def __repr__(self):
+        return f"<UnidadeSaude(nome='{self.nome}')>"
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'nome': self.nome,
+            'endereco': self.endereco,
+            'cnpj': self.cnpj,
+            'telefone': self.telefone,
+            'email': self.email,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+class Avaliacao(db.Model):
+    __tablename__ = 'avaliacoes'
+
+    id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
+    paciente_id = Column(String(26), ForeignKey('pacientes.id', ondelete='CASCADE'))
+    data_inicio = Column(Date, nullable=False)
+    unidade_saude_id = Column(String(26), ForeignKey('unidades_saude.id', ondelete='CASCADE')) # Removida vírgula extra
+    medico_id = Column(String(26), ForeignKey('medicos.id', ondelete='CASCADE'), nullable=True)
+    laudo_id = Column(String(26), ForeignKey('laudos.id', ondelete='CASCADE'), unique=True, nullable=True) # Adicionado unique=True e nullable=False explicitamente
+    fechada = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+
+    laudo = relationship(
+        "Laudo",
+        back_populates="avaliacao",
+        uselist=False
+    )
+
+    baterias_testes = relationship(   
+        "BateriaTestes",
+        back_populates="avaliacao", 
+        cascade="all, delete-orphan"
+    )
+    
+    medico = relationship("Medico", back_populates="avaliacoes")
+    unidade_saude = relationship("UnidadeSaude", back_populates="avaliacao")
+    paciente = relationship("Paciente", back_populates="avaliacoes")
+
+    def __repr__(self):
+            return f"<Avaliacao(id='{self.id}', data_inicio='{self.data_inicio}')>"
+    
+
+    def to_json(self):
+      return {
+            'id': self.id,
+            'paciente_id': self.paciente_id,
+            'data_inicio': self.data_inicio.isoformat(),
+            'unidade_saude_id': self.unidade_saude_id,
+            'fechada': self.fechada,
+            'laudo_id': self.laudo_id,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+            
+      }
+        
+class Laudo(db.Model):
+    
+    __tablename__ = 'laudos'
+    
+    id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
+    medico_id = Column(String(26), ForeignKey('medicos.id', ondelete='CASCADE'))
+    paciente_id = Column(String(26), ForeignKey('pacientes.id', ondelete='CASCADE'))
+    cid = Column(String(10), nullable=False)
+    data = Column(Date, nullable=False)
+    parecer = Column(Text, nullable=False)
+    abordagem_terapeutica = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    medico = relationship("Medico")
+    paciente = relationship("Paciente")
+    
+    avaliacao = relationship(
+        "Avaliacao",
+        back_populates="laudo", 
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+    def __repr__(self):
+        return f"<Laudo(id='{self.id}', cid='{self.cid}')>"
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'medico_id': self.medico_id,
+            'paciente_id': self.paciente_id,
+            'cid': self.cid,
+            'data': self.data.isoformat(),
+            'parecer': self.parecer,
+            'abordagem_terapeutica': self.abordagem_terapeutica,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+ 

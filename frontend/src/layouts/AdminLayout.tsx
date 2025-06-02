@@ -13,7 +13,6 @@ import {
 import logo from "../assets/img/log-laranja-minified.png";
 import PeopleAlt from "@mui/icons-material/PeopleAlt";
 import PsycologyAltIcon from "@mui/icons-material/PsychologyAlt";
-import DashboardRounded from "@mui/icons-material/DashboardRounded";
 import EmailIcon from "@mui/icons-material/Email";
 import Home from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -21,10 +20,12 @@ import Logout from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import BallotRounded from "@mui/icons-material/BallotRounded";
-import { Engineering } from "@mui/icons-material";
 import DoctorIconComponent from "../components/DoctorIconComponent";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../utils/auth";
+import { DashboardRounded, Engineering, LocalHospital } from "@mui/icons-material";
+import TerapeutaIconComponent from "../components/TerapeutaIconComponent";
+import ProntuarioIconComponent from "../components/ProntuarioIconComponent";
 const Root = styled(Box)(() => ({
     display: "flex",
     flexDirection: "row",
@@ -161,41 +162,63 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/profissional")}>
                         <DoctorIconComponent />
                         <Typography variant="body2" sx={{ ml: 1 }}>
-                            Profissionais
+                            Terapeutas
                         </Typography>
                     </IconButton>
-                    {
-                        /*
-                    !isProfissional && (
+
+                    <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/medicos")}>
+
+                        <TerapeutaIconComponent />
+                        <Typography variant="body2" sx={{ ml: 1 }}>
+                            Medicos
+                        </Typography>
+                    </IconButton>
+                        
+
+                    {!isProfissional && (
                         <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/colaborador")}>
                             <Engineering />
                             <Typography variant="body2" sx={{ ml: 1 }}>
                                 Colaboradores
                             </Typography>
-                        </IconButton>
-                    )
+                        </IconButton>)
+}
+                    {
+                        /*
+                        
+                        
+                            <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/dashboard")}>
+                                <DashboardRounded />
+                                <Typography variant="body2" sx={{ ml: 1 }}>
+                                    Dashboard
+                                </Typography>
+                            </IconButton>
+                            
+                        
+                        */
+                    }
                     
-                    <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/dashboard")}>
-                        <DashboardRounded />
-                        <Typography variant="body2" sx={{ ml: 1 }}>
-                            Dashboard
-                        </Typography>
-                    </IconButton>
-                    
-                    
-                    */}
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/questionario")}>
                         <BallotRounded />
                         <Typography variant="body2" sx={{ ml: 1 }}>
                             Questionário
                         </Typography>
                     </IconButton>
-                    <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/testes")}>
+                    <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/baterias")}>
                         <PsycologyAltIcon />
                         <Typography variant="body2" sx={{ ml: 1 }}>
-                            Testes
+                            Baterias
                         </Typography>
                     </IconButton>
+
+
+
+                    
+                    
+                    {/*
+                    
+                    
+                    
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/notificacoes")}>
                         <Badge badgeContent={1} color="error">
                             <EmailIcon />
@@ -204,6 +227,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             Notificações
                         </Typography>
                     </IconButton>
+                    */
+
+                    }
+
+                          <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/unidade-saude")}>
+                        <LocalHospital />
+                        <Typography variant="body2" sx={{ ml: 1 }}>
+                            Unidades de Saúde
+                        </Typography>
+                    </IconButton>
+
                     {!isProfissional && (
                         <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/configuracoes")}>
                             <SettingsIcon />
@@ -212,6 +246,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </IconButton>
                     )}
+
+              
+
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={handleLogout}>
                         <Logout />
                         <Typography variant="body2" sx={{ ml: 1 }}>
@@ -259,19 +296,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        {
+                        
 
-                            /*
-                            <ButtonContent onClick={navigateTo("/dashboard")}>
-                                <DashboardRounded />
-                                <Typography variant="body2" sx={{ ml: 1 }}>
-                                    Dashboard
-                                </Typography>
-                            </ButtonContent>
-                            <Divider sx={{ marginTop: 1.5 }} flexItem />
-                            
-                            */
-                        }
                         <ButtonContent onClick={navigateTo("/paciente")}>
                             <PeopleAlt />
                             <Typography variant="body2" sx={{ ml: 1 }}>
@@ -280,15 +306,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
                         <ButtonContent onClick={navigateTo("/profissional")}>
-                            <DoctorIconComponent />
+                            <TerapeutaIconComponent />
                             <Typography variant="body2" sx={{ ml: 1 }}>
-                                Profissionais
+                                Terapeutas
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        {
-                        /*
-                        !isProfissional && (
+                        <ButtonContent onClick={navigateTo("/medico")}>
+                            <DoctorIconComponent />
+                            <Typography variant="body2" sx={{ ml: 1 }}>
+                                Médicos
+                            </Typography>
+                        </ButtonContent>
+                        <Divider sx={{ marginTop: 1.5 }} flexItem />
+                        {!isProfissional && (
                             <>
                                 <ButtonContent onClick={navigateTo("/colaborador")}>
                                     <Engineering />
@@ -298,8 +329,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                 </ButtonContent>
                                 <Divider sx={{ marginTop: 1.5 }} flexItem />
                             </>
-                        )
-                            */}
+                        )}
+                   
                         <ButtonContent onClick={navigateTo("/questionario")}>
                             <BallotRounded />
                             <Typography variant="body2" sx={{ ml: 1 }}>
@@ -307,18 +338,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        <ButtonContent onClick={navigateTo("/testes")}>
-                            <PsycologyAltIcon />
+                        <ButtonContent onClick={navigateTo("/baterias")}>
+                            <ProntuarioIconComponent fillColor="inherit"/>
                             <Typography variant="body2" sx={{ ml: 1 }}>
-                                Testes
+                                Avaliações
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
 
+                        
                         {/*
-                        
-                        
-                        
                         <ButtonContent onClick={navigateTo("/notificacoes")}>
                             <Badge badgeContent={1} color="error">
                                 <EmailIcon />
@@ -328,10 +357,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        */
-
-
-                        }
+                        */}
+                        <ButtonContent onClick={navigateTo("/unidade-saude")}>
+                            <LocalHospital />
+                            <Typography variant="body2" sx={{ ml: 1 }}>
+                                Unidades de Saúde
+                            </Typography>
+                        </ButtonContent>
+                        <Divider sx={{ marginTop: 1.5 }} flexItem />
                         {!isProfissional && (
                             <>
                                 <ButtonContent onClick={navigateTo("/configuracoes")}>

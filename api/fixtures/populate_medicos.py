@@ -1,5 +1,5 @@
 from faker import Faker
-from models import User, Colaborador
+from models import User, Medico
 from extensions import db
 from datetime import datetime, timezone
 import ulid
@@ -12,52 +12,42 @@ def gerar_email(nome_completo):
         partes += [fake.last_name() for _ in range(3 - len(partes))]
     return f"{partes[0]}_{partes[1]}_{partes[2]}@faker.com"
 
-def popular_colaboradores(qtd=20):
+def popular_medicos(qtd=20):
     for _ in range(qtd):
         nome = fake.name()
         email = gerar_email(nome)
-        cpf = fake.unique.cpf().replace('.', '').replace('-', '')
-        telefone = fake.phone_number()
-        funcao = fake.job()
-        enderecos = [{
-            "id": str(ulid.ULID()),
-            "logradouro": fake.street_name(),
-            "numero": fake.building_number(),
-            "complemento": "AP01",
-            "bairro": fake.bairro(),
-            "cidade": fake.city(),
-            "estado": fake.estado_sigla(),
-            "cep": fake.postcode().replace('-', '')
-        }]
+        crm = fake.unique.numerify(text='######')
+        especialidade = fake.random_element(elements=('Pediatria', 'Neurologia Infantil', 'Psiquiatria Infantil', 'Genética Médica'))
+
         # Cria o usuário
         user = User(
             email=email,
-            role='colaborador',
+            role='medico',
             is_active=True,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )
-        print(user.to_json())
         user.set_password('faker')
         db.session.add(user)
-        db.session.flush()  # Garante que o user.id está disponível e verifica constraints
+        db.session.flush()  # Garante user.id
 
-        colaborador = Colaborador(
+        # Cria o médico
+        medico = Medico(
             nome=nome,
-            telefone=telefone,
-            cpf=cpf,
-            enderecos=enderecos,
-            funcao=funcao,
             user_id=user.id,
+            crm=crm,
+            especialidade=especialidade,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )
-        db.session.add(colaborador)
+        db.session.add(medico)
     db.session.commit()
-    print(f"{qtd} colaboradores e usuários criados com sucesso.")
+    print(f"{qtd} médicos e usuários criados com sucesso.")
 
 if __name__ == "__main__":
     from app import create_app
     app = create_app()
     with app.app_context():
-        popular_colaboradores()
+        popular_medicos()
+        
+    

@@ -84,7 +84,7 @@ const PacienteModal: React.FC<PacienteModalProps> = ({ open, onClose, paciente, 
             dispatch({ type: 'SET_TELEFONE', payload: paciente.telefone || '' });
             dispatch({ type: 'SET_ENDERECOS', payload: paciente.enderecos || [] });
 
-            fetch(`${import.meta.env.VITE_BACKEND_URL}/user/users/${paciente.user_id}`, {
+            fetch(`${import.meta.env.VITE_BACKEND_URL}/user/${paciente.user_id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

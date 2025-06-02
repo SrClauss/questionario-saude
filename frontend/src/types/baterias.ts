@@ -15,7 +15,7 @@ export class BateriaTestes {
 
     constructor(data: any) {
         this.id = data.id;
-        this.profissional_saude_id = data.profissional_saude_id;
+        this.profissional_saude_id = data.profissional_saude_id||null;
         this.paciente_id = data.paciente_id;
         this.colaborador_id = data.colaborador_id || null;
         this.questionario_id = data.questionario_id;

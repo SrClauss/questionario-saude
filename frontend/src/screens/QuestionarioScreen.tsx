@@ -236,11 +236,7 @@ export default function QuestionarioScreen() {
                                     {q.titulo}
                                 </StyledTableCell>
                                 <ActionsTableCell>
-                                    <Tooltip title="Aplicar Questionário">
-                                        <IconButton color="primary" onClick={() => navigate(`/aplicacao-questionario/${q.id}`)}>
-                                            <Person2 />
-                                        </IconButton>
-                                    </Tooltip>
+                                   
                                     <Tooltip title="Info">
                                         <IconButton color="info" onClick={() => navigate(`/cadastro-questionario/${q.id}`)}>
                                             <InfoRounded />

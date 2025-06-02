@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Snackbar,
   Alert,
@@ -13,6 +13,7 @@ import LabeledBox from "../components/LabeledBox";
 import ResultQuestionario from "../components/ResultQuestionario";
 import { Questionario } from "../types/questionario"; // defina esse tipo conforme necessário
 import { auth } from "../utils/auth";
+import { Paciente } from "../types/user";
 
 export default function AplicacaoQuestionarioPacienteScreen() {
   const [snackBarProps, setSnackBarProps] = useState({
@@ -25,7 +26,29 @@ export default function AplicacaoQuestionarioPacienteScreen() {
   // Aqui assumimos que o id passado na rota é o do paciente
   const { id: pacienteId } = useParams();
   const navigate = useNavigate();
+  const [paciente, setPaciente] = useState<Paciente | null>(null);
+useEffect(() => {
 
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+  const token = localStorage.getItem("@App:token");
+  const url = `${baseUrl}/pacientes/${pacienteId}`;
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      setPaciente(data);
+    })
+    .catch((error) => {
+      console.error("Error fetching paciente:", error);
+    });
+}
+, [pacienteId]);
+  
   const handleSearch = (query: string) => {
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
     const token = localStorage.getItem("@App:token");
@@ -98,6 +121,14 @@ export default function AplicacaoQuestionarioPacienteScreen() {
             navigate("/questionario");
           }, 1500);
         } else {
+          console.error("Error saving aplicação de questionários:", response.status);
+          if (response.status === 403) {
+            setSnackBarProps({
+              open: true,
+              type: "error",
+              message: "Você não tem permissão para aplicar questionários a este paciente.",
+            });
+          }
           setSnackBarProps({
             open: true,
             type: "error",
@@ -132,7 +163,7 @@ export default function AplicacaoQuestionarioPacienteScreen() {
           margin: "0 auto",
         }}
       >
-        <StylizedTitle title="Aplicação de Questionários" />
+        <StylizedTitle title={paciente?.nome ?? "Paciente"} />
         <Box
           sx={{
             marginBottom: 2,

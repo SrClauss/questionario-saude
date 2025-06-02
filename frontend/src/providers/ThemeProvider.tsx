@@ -30,7 +30,7 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: [
-      'Roboto',
+      'Nunito',
       'Arial',
       'sans-serif',
     ].join(','),

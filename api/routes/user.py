@@ -10,7 +10,7 @@ from models import Colaborador, Paciente, ProfissionalSaude, User
 from extensions import db
 from utils.auth import token_required
 
-user_bp = Blueprint('users', __name__)
+user_bp = Blueprint('user', __name__)
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
@@ -18,7 +18,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@user_bp.route('/users', methods=['GET'])
+@user_bp.route('/', methods=['GET'])
 @token_required(roles=['admin'])
 def get_users():
     """
@@ -27,7 +27,7 @@ def get_users():
     users = User.query.all()
     return jsonify([user.to_json() for user in users]), 200
 
-@user_bp.route('/users/<string:id>', methods=['GET'])
+@user_bp.route('/<string:id>', methods=['GET'])
 @token_required(roles=['admin', 'profissional_saude', 'colaborador'])
 def get_user(id):
     """
@@ -38,7 +38,7 @@ def get_user(id):
         return jsonify({'error': 'Usuário não encontrado'}), 404
     return jsonify(user.to_json()), 200
 
-@user_bp.route('/users', methods=['POST'])
+@user_bp.route('/', methods=['POST'])
 @token_required(roles=['admin'])
 def create_user():
     """
@@ -59,7 +59,7 @@ def create_user():
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-@user_bp.route('/users/<string:id>', methods=['PUT'])
+@user_bp.route('/<string:id>', methods=['PUT'])
 @token_required(roles=['admin'])
 def update_user(id):
     """
@@ -82,7 +82,7 @@ def update_user(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-@user_bp.route('/users/<string:id>', methods=['DELETE'])
+@user_bp.route('/<string:id>', methods=['DELETE'])
 @token_required(roles=['admin'])
 def delete_user(id):
     """
@@ -96,7 +96,7 @@ def delete_user(id):
     db.session.commit()
     return '', 204
 
-@user_bp.route('/users/login', methods=['POST'])
+@user_bp.route('/login', methods=['POST'])
 def login():
     """
     Realiza o login de um usuário.
@@ -206,7 +206,7 @@ def get_profile_picture(user_id):
     except Exception as e:
         return jsonify({'message': f'Erro ao processar o arquivo: {str(e)}'}), 500
 
-@user_bp.route('/users/set_password', methods=['PUT'])
+@user_bp.route('/set_password', methods=['PUT'])
 def set_password():
     """
     Rota para definir a senha de um usuário.

@@ -33,16 +33,7 @@ def init_db():
         )
         db.session.add(admin)
 
-        # Cria o perfil de colaborador para o admin
-        colaborador = Colaborador(
-            id=str(ulid.ULID()),
-            user_id=admin.id,
-            nome='Administrador',
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc)
-        )
-        db.session.add(colaborador)
-
+      
         try:
             db.session.commit()
             print("Usuário admin criado com sucesso!")

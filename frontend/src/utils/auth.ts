@@ -4,7 +4,7 @@ interface TokenPayload {
   id: string
   email: string
   exp: number
-  role: 'admin' | 'profissional_saude' | 'paciente' | 'colaborador'
+  role: 'admin' | 'profissional_saude' | 'paciente' | 'colaborador' | 'medico'
 }
 
 interface User {

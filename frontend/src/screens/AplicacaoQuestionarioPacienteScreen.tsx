@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Snackbar,
   Alert,
@@ -12,6 +12,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import StylizedTitle from "../components/StylizedTitle";
 import ResultPaciente from "../components/ResultPaciente";
 import LabeledBox from "../components/LabeledBox";
+import { Questionario } from "../types/questionario";
 
 export default function AplicacaoQuestionarioPacienteScreen() {
   const [snackBarProps, setSnackBarProps] = useState({
@@ -22,10 +23,35 @@ export default function AplicacaoQuestionarioPacienteScreen() {
   const [resultadosPacientes, setResultadosPacientes] = useState<Paciente[]>([]);
   const [pacientesSelecionados, setPacientesSelecionados] = useState<Paciente[]>([]);
   const { id: questionarioId } = useParams();
+  const [questionario, setQuestionario] = useState<Questionario | null>(null);
+
+  useEffect(() => {
+    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    const token = localStorage.getItem("@App:token");
+    const url = `${baseUrl}/questionario/${questionarioId}`;
+    fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setQuestionario(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching questionario:", error);
+      });
+  }, [questionarioId]);
   const navigate = useNavigate();
 
   const handleSearch = (query: string) => {
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+
+
+    
     const token = localStorage.getItem("@App:token");
     if (query.length < 3) {
       return;
@@ -85,6 +111,15 @@ export default function AplicacaoQuestionarioPacienteScreen() {
             navigate("/questionario");
           }, 1500);
         } else {
+
+          if (response.status === 403) {
+            setSnackBarProps({
+              open: true,
+              type: "error",
+              message: "Você não tem permissão para aplicar questionários a este paciente.",
+            });
+            return;
+          }
           setSnackBarProps({
             open: true,
             type: "error",
@@ -153,7 +188,7 @@ export default function AplicacaoQuestionarioPacienteScreen() {
           margin: "0 auto",
         }}
       >
-        <StylizedTitle title="Aplicação de Questionário" />
+        <StylizedTitle title={questionario?.titulo || ""} />
         <Box
           sx={{
             display: "flex",

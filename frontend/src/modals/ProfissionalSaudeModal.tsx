@@ -108,7 +108,7 @@ const ProfissionalSaudeModal: React.FC<ProfissionalSaudeModalProps> = ({
       dispatch({ type: 'SET_ENDERECOS', payload: profissionalSaude.enderecos || [] });
       dispatch({ type: 'SET_PERFIL', payload: profissionalSaude.perfil || [] }); // Carregue o perfil
 
-      fetch(`${import.meta.env.VITE_BACKEND_URL}/user/users/${profissionalSaude.user_id}`, {
+      fetch(`${import.meta.env.VITE_BACKEND_URL}/user/${profissionalSaude.user_id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

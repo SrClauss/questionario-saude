@@ -42,7 +42,7 @@ api/htmlcov/
 api/.python-version
 api/instance/
 api/migrations/
-
+api/populate.py
 # Frontend - React
 frontend/node_modules
 frontend/.pnp
@@ -59,6 +59,7 @@ frontend/.env.production.local
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
+
 
 # IDEs e Editores
 .idea/

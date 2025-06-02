@@ -1,4 +1,51 @@
 from faker import Faker
+from models import UnidadeSaude
+from extensions import db
+from datetime import datetime, timezone
+import ulid
+
+fake = Faker('pt_BR')
+
+def popular_unidades_saude(qtd=5):
+    for _ in range(qtd):
+        nome = fake.company() + " " + fake.random_element(elements=('Clínica', 'Hospital', 'Centro de Saúde', 'Posto de Saúde'))
+        cnpj = fake.unique.cnpj().replace('.', '').replace('/', '').replace('-', '')
+        telefone = fake.phone_number()
+        email = fake.company_email()
+        endereco = {
+            "id": str(ulid.ULID()),
+            "logradouro": fake.street_name(),
+            "numero": fake.building_number(),
+            "complemento": "Sala 101",
+            "bairro": fake.bairro(),
+            "cidade": fake.city(),
+            "estado": fake.estado_sigla(),
+            "cep": fake.postcode().replace('-', '')
+        }
+
+        unidade = UnidadeSaude(
+            nome=nome,
+            cnpj=cnpj,
+            telefone=telefone,
+            email=email,
+            endereco=endereco,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
+        )
+        db.session.add(unidade)
+    db.session.commit()
+    print(f"{qtd} unidades de saúde criadas com sucesso.")
+
+if __name__ == "__main__":
+    from app import create_app
+    app = create_app()
+    with app.app_context():
+        popular_unidades_saude()
+        
+
+
+"""
+from faker import Faker
 from models import User, Colaborador
 from extensions import db
 from datetime import datetime, timezone
@@ -37,11 +84,11 @@ def popular_colaboradores(qtd=20):
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )
-        print(user.to_json())
         user.set_password('faker')
         db.session.add(user)
-        db.session.flush()  # Garante que o user.id está disponível e verifica constraints
+        db.session.flush()  # Garante user.id
 
+        # Cria o colaborador
         colaborador = Colaborador(
             nome=nome,
             telefone=telefone,
@@ -61,3 +108,4 @@ if __name__ == "__main__":
     app = create_app()
     with app.app_context():
         popular_colaboradores()
+"""

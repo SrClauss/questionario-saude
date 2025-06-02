@@ -180,7 +180,7 @@ export default function ProfissionalHomeScreen() {
               </Avatar>
             </Tooltip>
             <Box>
-              <Typography variant="h5" gutterBottom sx={{ m: 0 }}>
+              <Typography color={theme.palette.secondary.main} variant="h5" gutterBottom sx={{ m: 0 }}>
                 Dashboard Profissional
               </Typography>
               <Typography variant="subtitle1" color="textSecondary">

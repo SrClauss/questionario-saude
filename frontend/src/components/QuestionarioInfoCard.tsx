@@ -19,7 +19,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Questionario } from '../types/questionario';
 import { formatarFonteABNT } from '../utils/abntFormatter';
 import { DeleteForever, FileCopy } from '@mui/icons-material';
-import ConfirmActionModal from './ConfirmActionModal';
+import ConfirmActionModal from '../modals/ConfirmActionModal';
 import DefineVersionModal from './DefineVersionModal';
 
 interface QuestionarioInfoCardProps {

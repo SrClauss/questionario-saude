@@ -15,6 +15,7 @@ def get_colaboradores_paginated(page=1, len=10):
         page = int(page)
         len = int(len)
         colaboradores = Colaborador.query.paginate(page=page, per_page=len, error_out=False)
+
         return jsonify([colaborador.to_json() for colaborador in colaboradores.items]), 200
     except Exception as e:
         print(f"Erro na rota GET /colaboradores: {e}")

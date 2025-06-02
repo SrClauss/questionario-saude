@@ -152,3 +152,34 @@ export class Colaborador {
     this.user_id = user_id;
   }
 }
+
+export class Medico {
+  id: string;
+  user_id: string;
+  nome: string;
+  crm: string;
+  especialidade: string;
+  created_at: string;
+  updated_at: string;
+
+  constructor(
+    id: string,
+    user_id: string,
+    nome: string,
+    crm: string,
+    especialidade: string,
+    created_at: string,
+    updated_at: string,
+
+  ) {
+    this.id = id;
+    this.user_id = user_id;
+    this.nome = nome;
+    this.crm = crm;
+    this.especialidade = especialidade;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
+  }
+
+}
+
