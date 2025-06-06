@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
-import { AddCircle, AutoAwesome, Delete, PostAdd, Warning } from '@mui/icons-material';
+import { AddCircle, AutoAwesome, Delete, PostAdd, Warning, VisibilityOutlined as VisibilityIcon } from '@mui/icons-material';
 import PerguntaInfoCard from './PerguntaInfoCard';
 import PerguntaModal from '../modals/ModalsCadastroQuestionario/PerguntaModal';
 import PerguntasEmLoteModal, { PerguntaData } from '../modals/ModalsCadastroQuestionario/PerguntasEmLoteModal';
@@ -71,67 +71,54 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
     texto: string; 
     tipo_resposta: string; 
     metodo_pontuacao: string;
-    alternativas?: { id?: string; texto: string; valor: number; ordem: number }[];
+    ordem?: number; // Adicionando ordem aqui para tipagem correta
+    alternativas?: { texto: string; valor: number; ordem: number }[];
   }) => {
     const token = localStorage.getItem('@App:token');
     let questionResponse;
     try {
       if (selectedPergunta?.id) {
-        // Atualiza pergunta existente
+        // Atualiza pergunta existente, enviando alternativas no mesmo payload
         questionResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas/${selectedPergunta.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            texto: perguntaAtualizada.texto,
-            tipo_resposta: perguntaAtualizada.tipo_resposta,
-            metodo_pontuacao: perguntaAtualizada.metodo_pontuacao,
-            alternativas: perguntaAtualizada.alternativas,
-            sessao_id: sessao.id,
+          body: JSON.stringify({ // Inclui alternativas diretamente
+            ...perguntaAtualizada,
+            sessao_id: sessao.id, // Garante que sessao_id seja enviado
+            ordem: perguntaAtualizada.ordem ?? selectedPergunta.ordem, // Adiciona ordem
           }),
         });
       } else {
-        // Cria nova pergunta
+        // Cria nova pergunta, enviando alternativas no mesmo payload
         questionResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/perguntas`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            texto: perguntaAtualizada.texto,
-            tipo_resposta: perguntaAtualizada.tipo_resposta,
-            metodo_pontuacao: perguntaAtualizada.metodo_pontuacao,
-            alternativas: perguntaAtualizada.alternativas,
-            sessao_id: sessao.id,
+          body: JSON.stringify({ // Inclui alternativas diretamente
+            ...perguntaAtualizada,
+            sessao_id: sessao.id, // Garante que sessao_id seja enviado
+            ordem: perguntaAtualizada.ordem ?? (sessao.perguntas?.length ?? 0) + 1, // Adiciona ordem
           }),
         });
       }
       
       if (questionResponse.ok) {
+        // Não é mais necessário um fetch separado para alternativas
+        // O backend já lida com isso na rota de PUT/POST da pergunta
+        const data = await questionResponse.json();
+        let message = selectedPergunta ? "Pergunta atualizada" : "Pergunta criada";
         if (perguntaAtualizada.alternativas && perguntaAtualizada.alternativas.length > 0) {
-          const altResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/alternativas/batch`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify(perguntaAtualizada.alternativas),
-          });
-          if (!altResponse.ok) {
-            const altData = await altResponse.json();
-            setSnackbarMessage(`Pergunta salva, mas erro ao atualizar alternativas: ${altData.error || "Erro desconhecido"}`);
-            setOpenSnackbar(true);
-          } else {
-            setSnackbarMessage("Pergunta e alternativas atualizadas com sucesso");
-            setOpenSnackbar(true);
-          }
+          message += " com suas alternativas";
         } else {
-          setSnackbarMessage(selectedPergunta ? "Pergunta atualizada com sucesso" : "Pergunta criada com sucesso");
-          setOpenSnackbar(true);
+          message += " com sucesso";
         }
+        setSnackbarMessage(message);
+        setOpenSnackbar(true);
       } else {
         const data = await questionResponse.json();
         setSnackbarMessage(`Erro ao salvar pergunta: ${data.message || "Erro desconhecido"}`);
@@ -268,9 +255,11 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <Box sx={{ width: { xs: "100%", md: "70%" }}}>
             <Typography variant="h6">{sessao.titulo}</Typography>
+            </Box>
             { !hasBaterias ? (
-              <Box>
+              <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row"} }}>
                 <Tooltip title="Alterar Alternativas em Lote">
                   <IconButton onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpenAlternativasModal(true); }}>
                     <AutoAwesome color="info" />
@@ -310,6 +299,7 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
               </Box>
             )}
           </Box>
+    
         </AccordionSummary>
         <AccordionDetails onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
           <Box>
@@ -321,34 +311,26 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
               <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>Ordem:</Typography>
               <Typography variant="body1">{sessao.ordem}</Typography>
             </Box>
-            
-            {sessao.pergunta_condicional && (
-              <Box sx={{ display: 'flex', justifyContent: 'start', mt: 1 }}>
-                <Typography variant="body1" sx={{ mr: 1, fontWeight: 'bold' }}>Pergunta condicional:</Typography>
-                <Typography variant="body1">
-                  {sessao.pergunta_condicional.texto} 
-                  <Typography component="span" color="text.secondary" sx={{ fontSize: '0.8rem', ml: 1 }}>
-                    (ID: {sessao.pergunta_condicional.id})
-                  </Typography>
-                </Typography>
-              </Box>
-            )}
-            
-            {sessao.respostas_condicionais && sessao.respostas_condicionais.length > 0 && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', mt: 1 }}>
-                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Respostas condicionais:</Typography>
-                <Box sx={{ ml: 2 }}>
-                  {sessao.respostas_condicionais.map((resposta: {id: string, texto: string}) => (
-                    <Typography key={resposta.id} variant="body1">
-                      • {resposta.texto}
-                      <Typography component="span" color="text.secondary" sx={{ fontSize: '0.8rem', ml: 1 }}>
-                        (ID: {resposta.id})
-                      </Typography>
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            )}
+
+                  {/* Indicador de Regras de Visibilidade Ativas */}
+          {sessao.regras_visibilidade && sessao.regras_visibilidade.length > 0 && (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'flex-start', // Alinha à esquerda abaixo do título
+                width: '100%', 
+                mt: 1, 
+                p: 0.5,
+                backgroundColor: 'action.hover', // Um fundo sutil
+                borderRadius: 1,
+              }}>
+              <VisibilityIcon color="action" sx={{ mr: 0.5, fontSize: '1rem' }} />
+              <Typography variant="caption" color="text.secondary">
+                Esta sessão possui regras de visibilidade. Clique em <EditIcon sx={{ fontSize: '0.9rem', verticalAlign: 'middle', mx: 0.25 }} /> para ver/editar.
+              </Typography>
+            </Box>
+          )}
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
             <Divider sx={{ flexGrow: 1, mr: 2 }} />

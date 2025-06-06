@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Snackbar, Alert, Pagination } from "@mui/material";
 import SearchBar from "../components/SearchBar";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import MedicoModal from "../modals/MedicoModal";
 import { Medico } from "../types/user";
 import { Add, Delete, Edit,  } from "@mui/icons-material";
@@ -133,7 +133,7 @@ export default function MedicoScreen() {
 
 
     return (
-        <AdminLayout>
+        <VariableLayout>
             <Box id="container"
                 sx={{
                     paddingTop: { xs: 4, sm: 4, md: 0 },
@@ -241,7 +241,7 @@ export default function MedicoScreen() {
                     />
                 )}
             </Box>
-        </AdminLayout>
+        </VariableLayout>
     )
 
 

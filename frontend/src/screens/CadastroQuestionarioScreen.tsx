@@ -8,7 +8,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import { Sessao, Questionario } from "../types/questionario";
 import { useNavigate, useParams } from "react-router-dom";
 import QuestionarioInfoCard from "../components/QuestionarioInfoCard";
@@ -19,18 +19,12 @@ import SessaoModal from "../modals/ModalsCadastroQuestionario/SessaoModal";
 import DeleteModal from "../modals/DeleteDialog";
 import { QuestionarioProvider } from "../contexts/QuestionarioContext";
 import { useQuestionarioContext } from "../contexts/QuestionarioContext";
-
+import { SessaoData } from "../modals/ModalsCadastroQuestionario/SessaoModal";
 export interface PerguntaCondicional {
   id: string;
   texto: string;
 }
 
-export interface SessaoData {
-  titulo: string;
-  descricao?: string;
-  pergunta_condicional?: PerguntaCondicional | null;
-  respostas_condicionais?: { id: string; texto: string }[] | null;
-}
 
 export default function CadastroQuestionarioScreen() {
   return (
@@ -50,7 +44,7 @@ function CadastroQuestionarioContent() {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem("@App:token");
 
-  const hasBaterias = useQuestionarioContext();
+  const { hasBaterias, setHasBaterias } = useQuestionarioContext();
 
   
   const [isSessaoModalOpen, setIsSessaoModalOpen] = useState(false);
@@ -105,6 +99,27 @@ function CadastroQuestionarioContent() {
     }
   };
 
+  const fetchHasBaterias = async () => {
+    if (!questionarioId) return;
+    try {
+      const url = `${backendUrl}/questionario/has_baterias/${questionarioId}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        console.error("Erro ao verificar baterias");
+        return;
+      }
+      const data = await response.json();
+      setHasBaterias(data.has_baterias);
+    } catch (error) {
+      console.error("Erro no fetch has_baterias:", error);
+    }
+  };
   const prepareFormData = () => {
     if (!questionario) return undefined;
     return {
@@ -159,37 +174,9 @@ function CadastroQuestionarioContent() {
     fetchQuestionarioDetalhado();
   }, [urlId, backendUrl, token]);
 
+  // Fetch hasBaterias when questionarioId changes
   useEffect(() => {
     if (!questionarioId) return;
-    const fetchHasBaterias = async () => {
-      try {
-        const url = `${backendUrl}/questionario/has_baterias/${questionarioId}`;
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          console.error("Erro ao verificar baterias");
-          return;
-        }
-
-        const data = await response.json();
-
-        if (data.has_baterias) {
-          hasBaterias.setHasBaterias(true);
-        } else {
-          hasBaterias.setHasBaterias(false);
-        }
-
-        
-      } catch (error) {
-        console.error("Erro no fetch has_baterias:", error);
-      }
-    };
-
     fetchHasBaterias();
   }, [questionarioId, backendUrl, token]);
 
@@ -209,52 +196,58 @@ function CadastroQuestionarioContent() {
   };
 
   const handleSaveSessao = async (sessaoData: SessaoData) => {
+    if (!questionarioId) {
+      setSnackbarMessage("ID do Questionário não encontrado para salvar a sessão.");
+      setSnackbarSeverity("error");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    const url = sessaoData.id
+      ? `${backendUrl}/sessoes/${sessaoData.id}`
+      : `${backendUrl}/sessoes`;
+    const method = sessaoData.id ? "PUT" : "POST";
+
+    // Adiciona questionario_id ao payload
+    const payload = {
+      ...sessaoData,
+      questionario_id: questionarioId,
+    };
+
     try {
-      const url = selectedSessao
-        ? `${backendUrl}/sessoes/${selectedSessao.id}`
-        : `${backendUrl}/sessoes`;
-      const method = selectedSessao ? "PUT" : "POST";
       const response = await fetch(url, {
         method: method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ...sessaoData,
-          questionario_id: questionarioId,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error(`Erro ao ${selectedSessao ? "atualizar" : "criar"} sessão: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Erro ao salvar sessão: ${response.status}`);
       }
 
       const savedSessao = await response.json();
 
-      setQuestionario((prev) => {
-        if (!prev) return null;
-        const updatedSessoes = selectedSessao
-          ? prev.sessoes.map((sessao) =>
-              sessao.id === selectedSessao.id ? savedSessao : sessao
-            )
-          : [...prev.sessoes, savedSessao];
-        return { ...prev, sessoes: updatedSessoes };
-      });
+      // Atualiza o questionário detalhado para refletir a sessão salva/atualizada
+      await fetchQuestionarioDetalhado();
 
-      setIsSessaoModalOpen(false);
-      setSelectedSessao(null);
-
-      setSnackbarMessage(`Sessão "${savedSessao.titulo}" ${selectedSessao ? "atualizada" : "criada"} com sucesso!`);
+      setSnackbarMessage(`Sessão "${savedSessao.titulo}" salva com sucesso!`);
       setSnackbarSeverity("success");
       setOpenSnackbar(true);
+      handleCloseSessaoModal();
+
     } catch (error: any) {
       console.error("Erro ao salvar sessão:", error);
-      setSnackbarMessage(`Erro ao salvar sessão: ${error.message}`);
+      setSnackbarMessage(error.message || "Erro desconhecido ao salvar sessão.");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
     }
   };
+
+  
 
   const handleConfirmDeleteSessao = (sessaoId: string) => {
     setSessaoToDelete(sessaoId);
@@ -311,7 +304,7 @@ function CadastroQuestionarioContent() {
   };
 
   return (
-    <AdminLayout>
+    <VariableLayout>
       <Box
         sx={{
           maxWidth: "100vh",
@@ -326,7 +319,12 @@ function CadastroQuestionarioContent() {
           </Box>
         </Box>
         {isViewMode && questionario ? (
-          <QuestionarioInfoCard questionario={questionario} />
+          <QuestionarioInfoCard
+            questionario={questionario}
+            onEdit={() => setIsViewMode(false)}
+            // Call both fetchQuestionarioDetalhado and fetchHasBaterias on refresh
+            onRefresh={async () => { await fetchQuestionarioDetalhado(); await fetchHasBaterias(); }}
+          />
         ) : (
           <QuestionarioForm initialData={prepareFormData()} onSave={handleSave} />
         )}
@@ -362,6 +360,7 @@ function CadastroQuestionarioContent() {
         onSave={handleSaveSessao}
         initialData={selectedSessao || undefined}
         questionarioId={questionarioId || ""}
+        ordem={questionario?.sessoes?.length  || 0}
       />
 
       <DeleteModal
@@ -383,6 +382,6 @@ function CadastroQuestionarioContent() {
           {snackbarMessage}
         </Alert>
       </Snackbar>
-    </AdminLayout>
+    </VariableLayout>
   );
 }

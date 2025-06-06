@@ -79,6 +79,7 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
             ...p,
             alternativas: alternativas,
         }));
+       
         onSave(perguntasComAlternativas);
         onClose();
     }, [perguntas, alternativas, onSave, onClose]);
@@ -120,10 +121,10 @@ const PerguntasEmLoteModal: React.FC<PerguntasEmLoteModalProps> = ({ open, onClo
                     backgroundColor: 'white',
                     width: { xs: '90%', sm: '60%', md: '40%' },
                     margin: 'auto',
-                    marginTop: '10%',
+                    marginTop: '0%',
                     padding: 3,
                     borderRadius: 2,
-                    maxHeight: '90vh',
+                    maxHeight: '80vh',
                     overflowY: 'auto',
                 }}
             >

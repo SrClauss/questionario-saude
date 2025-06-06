@@ -61,6 +61,11 @@ export default function BateriasCadastroModal({
     };
 
     useEffect(() => {
+        setQuestionarios([]);
+    }, [open]);
+
+
+    useEffect(() => {
         fetchSearchQuestionarios();
     }, [searchQuery]);
 

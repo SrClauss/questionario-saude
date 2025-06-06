@@ -95,12 +95,7 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
 
   const handleSave = () => {
     if (validateForm()) {
-      console.log({
-        texto,
-        tipo_resposta: tipoResposta,
-        metodo_pontuacao: metodoPontuacao,
-        alternativas,
-      })
+  
       onSave({ 
         texto, 
         tipo_resposta: tipoResposta, 
@@ -138,6 +133,7 @@ const PerguntaModal: React.FC<PerguntaModalProps> = ({ open, onClose, onSave, in
           label="Texto da Pergunta"
           fullWidth
           value={texto}
+          multiline
           onChange={(e) => {
             setTexto(e.target.value);
             if (errors.texto) {

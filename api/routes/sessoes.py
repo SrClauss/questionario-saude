@@ -56,7 +56,8 @@ def create_sessao():
             questionario_id=questionario_id,
             titulo=data['titulo'],
             descricao=data.get('descricao', ''),
-            ordem=maior_ordem + 1  # Incrementa a ordem automaticamente
+            ordem=maior_ordem + 1,  # Incrementa a ordem automaticamente
+            regras_visibilidade=data.get('regras_visibilidade', None)
         )
         db.session.add(sessao)
         db.session.commit()
@@ -85,8 +86,9 @@ def update_sessao(id):
         sessao.titulo = data['titulo']
         sessao.descricao = data.get('descricao', sessao.descricao)
         sessao.ordem = data['ordem']
-        sessao.pergunta_condicional = data.get('pergunta_condicional', sessao.pergunta_condicional)
-        sessao.respostas_condicionais = data.get('respostas_condicionais', sessao.respostas_condicionais)
+        # sessao.pergunta_condicional = data.get('pergunta_condicional', sessao.pergunta_condicional) # Campo antigo
+        # sessao.respostas_condicionais = data.get('respostas_condicionais', sessao.respostas_condicionais) # Campo antigo
+        sessao.regras_visibilidade = data.get('regras_visibilidade', sessao.regras_visibilidade)
 
         db.session.commit()
         return jsonify(sessao.to_json()), 200

@@ -13508,7 +13508,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Existem casos de TDAH na família? Pai, mãe, irmãos, avós, tios, ou primos têm diagnóstico de TDAH ou apresentaram sintomas semelhantes?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -13516,7 +13516,7 @@ questionarios = [
             },
             {
               "texto": "Algum membro da família foi diagnosticado com transtornos comórbidos ao TDAH? Exemplos: Transtornos de ansiedade, depressão, transtorno de conduta, dificuldades de aprendizagem.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -13524,7 +13524,7 @@ questionarios = [
             },
             {
               "texto": "Existem outros distúrbios do desenvolvimento cognitivo ou comportamental na família? Dificuldades de aprendizagem, problemas de memória, habilidades de planejamento, problemas com impulsividade.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -13539,7 +13539,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "A gestação foi saudável? Houve complicações como infecções, hipertensão ou uso de substâncias durante a gravidez?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -13547,7 +13547,7 @@ questionarios = [
             },
             {
               "texto": "O parto foi normal ou houve complicações? Parto prematuro, dificuldades de oxigenação, uso de fórceps, cesariana de emergência?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -13555,7 +13555,7 @@ questionarios = [
             },
             {
               "texto": "Houve problemas no período neonatal? Baixo peso ao nascer, icterícia, hospitalização prolongada ou necessidade de cuidados especiais?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -13570,7 +13570,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Quando a criança começou a andar e falar? Há atrasos no desenvolvimento motor ou de linguagem? Quais marcos de desenvolvimento foram atrasados?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -13578,7 +13578,7 @@ questionarios = [
             },
             {
               "texto": "Quais foram os primeiros sinais de dificuldade de atenção ou comportamento? A criança apresentou dificuldades para se concentrar em atividades desde a primeira infância? Como os pais perceberam essas dificuldades?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -13586,7 +13586,7 @@ questionarios = [
             },
             {
               "texto": "Como a criança se comportava em casa, na escola e em interações sociais? Comportamento impulsivo, dificuldades para seguir instruções, hiperatividade ou comportamento desafiador?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -13594,7 +13594,7 @@ questionarios = [
             },
             {
               "texto": "A criança teve dificuldades acadêmicas? Quais matérias foram mais difíceis? A criança teve problemas com organização, planejamento ou cumprimento de tarefas escolares?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 4,
               "is_obrigatoria": False,
@@ -13609,7 +13609,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Quais são as dificuldades atuais no ambiente escolar/trabalho? Dificuldade para manter o foco, concluir tarefas ou seguir instruções? A pessoa precisa de mais tempo para completar atividades?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -13617,7 +13617,7 @@ questionarios = [
             },
             {
               "texto": "Como a pessoa lida com responsabilidades cotidianas? A pessoa se sente desorganizada, desatenta ou impulsiva nas atividades diárias? Há histórico de dificuldades em gerenciar tempo e prioridades?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -13625,7 +13625,7 @@ questionarios = [
             },
             {
               "texto": "Há problemas com comportamentos impulsivos ou hiperatividade? A pessoa interrompe os outros, tem dificuldades para aguardar a vez ou apresenta inquietação excessiva?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -13633,7 +13633,7 @@ questionarios = [
             },
             {
               "texto": "Qual o impacto desses sintomas nas relações sociais e familiares? Existe um histórico de conflitos familiares ou sociais devido ao comportamento impulsivo ou desatento? Como o paciente interage com amigos e familiares?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 4,
               "is_obrigatoria": False,
@@ -13648,7 +13648,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Algum membro da família tem diagnóstico de transtornos de ansiedade, depressão ou distúrbios de humor?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -13656,7 +13656,7 @@ questionarios = [
             },
             {
               "texto": "Existem sinais de depressão, ansiedade ou problemas emocionais na criança/adolescente/adulto? Como a pessoa lida com o estresse ou frustração? Há dificuldades com o controle emocional?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -13664,7 +13664,7 @@ questionarios = [
             },
             {
               "texto": "Há alguma dificuldade significativa em habilidades acadêmicas ou sociais que possa indicar um transtorno de aprendizado?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -13679,7 +13679,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Há histórico familiar de doenças psiquiátricas ou neurológicas? Transtornos de ansiedade, depressão, esquizofrenia, epilepsia, entre outros.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -13687,7 +13687,7 @@ questionarios = [
             },
             {
               "texto": "A família tem antecedentes de problemas de abuso de substâncias, alcoolismo ou comportamento criminal? Fatores ambientais de risco podem contribuir para a manifestação de sintomas de TDAH.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -13695,7 +13695,7 @@ questionarios = [
             },
             {
               "texto": "Quais fatores ambientais podem estar influenciando a criança/adolescente/adulto? Mudanças significativas no ambiente (divórcio dos pais, mudança de escola, trauma) podem desencadear ou exacerbar os sintomas.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -14049,7 +14049,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Existem casos de TDAH na família? Pai, mãe, irmãos, avós, tios, ou primos têm diagnóstico de TDAH ou apresentaram sintomas semelhantes?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -14057,7 +14057,7 @@ questionarios = [
             },
             {
               "texto": "Algum membro da família foi diagnosticado com transtornos comórbidos ao TDAH? Exemplos: Transtornos de ansiedade, depressão, transtorno de conduta, dificuldades de aprendizagem.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -14065,7 +14065,7 @@ questionarios = [
             },
             {
               "texto": "Existem outros distúrbios do desenvolvimento cognitivo ou comportamental na família? Dificuldades de aprendizagem, problemas de memória, habilidades de planejamento, problemas com impulsividade.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -14080,7 +14080,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "A gestação foi saudável? Houve complicações como infecções, hipertensão ou uso de substâncias durante a gravidez?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -14088,7 +14088,7 @@ questionarios = [
             },
             {
               "texto": "O parto foi normal ou houve complicações? Parto prematuro, dificuldades de oxigenação, uso de fórceps, cesariana de emergência?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -14096,7 +14096,7 @@ questionarios = [
             },
             {
               "texto": "Houve problemas no período neonatal? Baixo peso ao nascer, icterícia, hospitalização prolongada ou necessidade de cuidados especiais?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -14111,7 +14111,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Quando a criança começou a andar e falar? Há atrasos no desenvolvimento motor ou de linguagem? Quais marcos de desenvolvimento foram atrasados?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -14119,7 +14119,7 @@ questionarios = [
             },
             {
               "texto": "Quais foram os primeiros sinais de dificuldade de atenção ou comportamento? A criança apresentou dificuldades para se concentrar em atividades desde a primeira infância? Como os pais perceberam essas dificuldades?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -14127,7 +14127,7 @@ questionarios = [
             },
             {
               "texto": "Como a criança se comportava em casa, na escola e em interações sociais? Comportamento impulsivo, dificuldades para seguir instruções, hiperatividade ou comportamento desafiador?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -14135,7 +14135,7 @@ questionarios = [
             },
             {
               "texto": "A criança teve dificuldades acadêmicas? Quais matérias foram mais difíceis? A criança teve problemas com organização, planejamento ou cumprimento de tarefas escolares?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 4,
               "is_obrigatoria": False,
@@ -14150,7 +14150,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Quais são as dificuldades atuais no ambiente escolar/trabalho? Dificuldade para manter o foco, concluir tarefas ou seguir instruções? A pessoa precisa de mais tempo para completar atividades?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -14158,7 +14158,7 @@ questionarios = [
             },
             {
               "texto": "Como a pessoa lida com responsabilidades cotidianas? A pessoa se sente desorganizada, desatenta ou impulsiva nas atividades diárias? Há histórico de dificuldades em gerenciar tempo e prioridades?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -14166,7 +14166,7 @@ questionarios = [
             },
             {
               "texto": "Há problemas com comportamentos impulsivos ou hiperatividade? A pessoa interrompe os outros, tem dificuldades para aguardar a vez ou apresenta inquietação excessiva?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -14174,7 +14174,7 @@ questionarios = [
             },
             {
               "texto": "Qual o impacto desses sintomas nas relações sociais e familiares? Existe um histórico de conflitos familiares ou sociais devido ao comportamento impulsivo ou desatento? Como o paciente interage com amigos e familiares?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 4,
               "is_obrigatoria": False,
@@ -14189,7 +14189,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Algum membro da família tem diagnóstico de transtornos de ansiedade, depressão ou distúrbios de humor?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -14197,7 +14197,7 @@ questionarios = [
             },
             {
               "texto": "Existem sinais de depressão, ansiedade ou problemas emocionais na criança/adolescente/adulto? Como a pessoa lida com o estresse ou frustração? Há dificuldades com o controle emocional?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -14205,7 +14205,7 @@ questionarios = [
             },
             {
               "texto": "Há alguma dificuldade significativa em habilidades acadêmicas ou sociais que possa indicar um transtorno de aprendizado?",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -14220,7 +14220,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Há histórico familiar de doenças psiquiátricas ou neurológicas? Transtornos de ansiedade, depressão, esquizofrenia, epilepsia, entre outros.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 1,
               "is_obrigatoria": False,
@@ -14228,7 +14228,7 @@ questionarios = [
             },
             {
               "texto": "A família tem antecedentes de problemas de abuso de substâncias, alcoolismo ou comportamento criminal? Fatores ambientais de risco podem contribuir para a manifestação de sintomas de TDAH.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 2,
               "is_obrigatoria": False,
@@ -14236,7 +14236,7 @@ questionarios = [
             },
             {
               "texto": "Quais fatores ambientais podem estar influenciando a criança/adolescente/adulto? Mudanças significativas no ambiente (divórcio dos pais, mudança de escola, trauma) podem desencadear ou exacerbar os sintomas.",
-              "tipo_resposta": "texto_livre",
+              "tipo_resposta": "texto",
               "metodo_pontuacao": "qualitativo",
               "ordem": 3,
               "is_obrigatoria": False,
@@ -19211,7 +19211,7 @@ questionarios = [
           "perguntas": [
             {
               "texto": "Nome Completo:",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": True,
               "metodo_pontuacao": "N/D",
               "ordem": 1,
@@ -19219,7 +19219,7 @@ questionarios = [
             },
             {
               "texto": "Data de Nascimento (DD/MM/AAAA):",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": True,
               "metodo_pontuacao": "N/D",
               "ordem": 2,
@@ -19251,7 +19251,7 @@ questionarios = [
             },
             {
               "texto": "Nome da Mãe:",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": True,
               "metodo_pontuacao": "N/D",
               "ordem": 4,
@@ -19259,7 +19259,7 @@ questionarios = [
             },
             {
               "texto": "Nome do Pai:",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": True,
               "metodo_pontuacao": "N/D",
               "ordem": 5,
@@ -19267,7 +19267,7 @@ questionarios = [
             },
             {
               "texto": "Endereço Completo:",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": True,
               "metodo_pontuacao": "N/D",
               "ordem": 6,
@@ -19275,7 +19275,7 @@ questionarios = [
             },
             {
               "texto": "Telefone para Contato (com DDD):",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": True,
               "metodo_pontuacao": "N/D",
               "ordem": 7,
@@ -19283,7 +19283,7 @@ questionarios = [
             },
             {
               "texto": "Profissão:",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 8,
@@ -19465,7 +19465,7 @@ questionarios = [
             },
             {
               "texto": "Com que frequência você consome bebidas alcoólicas?",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 4,
@@ -19492,7 +19492,7 @@ questionarios = [
             },
             {
               "texto": "Qual atividade física? (Se sim)",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 6,
@@ -19500,7 +19500,7 @@ questionarios = [
             },
             {
               "texto": "Quantas vezes por semana? (Se sim)",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 7,
@@ -19581,7 +19581,7 @@ questionarios = [
             },
             {
               "texto": "Detalhe outras comorbidades:",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 2,
@@ -19608,7 +19608,7 @@ questionarios = [
             },
             {
               "texto": "Quais medicações? (Caso sim)",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 4,
@@ -19635,7 +19635,7 @@ questionarios = [
             },
             {
               "texto": "Quais medicamentos? (Caso sim)",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 6,
@@ -19715,7 +19715,7 @@ questionarios = [
             },
             {
               "texto": "Qual tipo de câncer? (Caso sim)",
-              "tipo_resposta": "texto_puro",
+              "tipo_resposta": "texto",
               "is_obrigatoria": False,
               "metodo_pontuacao": "N/D",
               "ordem": 10,

@@ -8,7 +8,7 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
 import { Paciente } from "../types/user";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import StylizedTitle from "../components/StylizedTitle";
 import ResultPaciente from "../components/ResultPaciente";
 import LabeledBox from "../components/LabeledBox";
@@ -176,7 +176,7 @@ export default function AplicacaoQuestionarioPacienteScreen() {
   };
 
   return (
-    <AdminLayout>
+    <VariableLayout>
       <Box
         sx={{
           padding: { xs: 1, md: 6 },
@@ -263,6 +263,6 @@ export default function AplicacaoQuestionarioPacienteScreen() {
           {snackBarProps.message}
         </Alert>
       </Snackbar>
-    </AdminLayout>
+    </VariableLayout>
   );
 }

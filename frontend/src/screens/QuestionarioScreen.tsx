@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { Delete, InfoRounded, Add, Person2 } from "@mui/icons-material";
 import SearchBar from "../components/SearchBar";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import { useNavigate } from "react-router-dom";
 import DeleteModal from "../modals/DeleteDialog";
 
@@ -196,7 +196,7 @@ export default function QuestionarioScreen() {
     };
 
     return (
-        <AdminLayout>
+        <VariableLayout>
             <Box id="container"
 
             sx={{
@@ -294,6 +294,6 @@ export default function QuestionarioScreen() {
                 />
 
             </Box>
-        </AdminLayout>
+        </VariableLayout>
     );
 }

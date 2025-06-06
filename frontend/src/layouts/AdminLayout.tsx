@@ -32,7 +32,7 @@ const Root = styled(Box)(() => ({
     height: "100vh",
     background: "#f0f2f5",
     padding: "12px 12px 64px 0",
-    gap: "24px", // Espaço entre Sidebar e Content
+
     boxSizing: "border-box",
     "@media (max-width: 600px)": {
         flexDirection: "column",
@@ -49,8 +49,9 @@ const Sidebar = styled(Box)(({ theme }) => ({
     padding: "24px", // igual ao Content
     display: "flex",
     flexDirection: "column",
-    borderRadius: "0 16px 16px 0",
-    boxShadow: "0 8px 8px 0 rgba(0,0,0,0.5)",
+    boxShadow: "4px 0px 4px rgba(0,0,0,0.2)", // Alterado para sombra à direita
+    zIndex: 1,
+   
     height: "100%",
     "@media (max-width: 600px)": {
         display: "none",
@@ -61,10 +62,9 @@ const Sidebar = styled(Box)(({ theme }) => ({
 
 const Content = styled(Box)(() => ({
     flexGrow: 1,
-    padding: "24px", // igual ao Sidebar
+    padding: "24px",
     backgroundColor: "white",
-    borderRadius: "16px 0 0 16px",
-    boxShadow: "0 8px 8px 0 rgba(0,0,0,0.5)",
+
     height: "100%",
     overflow: "auto",
     // Removido marginLeft
@@ -183,20 +183,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </IconButton>)
 }
-                    {
-                        /*
-                        
-                        
-                            <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/dashboard")}>
-                                <DashboardRounded />
-                                <Typography variant="body2" sx={{ ml: 1 }}>
-                                    Dashboard
-                                </Typography>
-                            </IconButton>
-                            
-                        
-                        */
-                    }
+                  
                     
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/questionario")}>
                         <BallotRounded />
@@ -214,22 +201,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
 
                     
-                    
-                    {/*
-                    
-                    
-                    
-                    <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/notificacoes")}>
-                        <Badge badgeContent={1} color="error">
-                            <EmailIcon />
-                        </Badge>
-                        <Typography variant="body2" sx={{ ml: 1 }}>
-                            Notificações
-                        </Typography>
-                    </IconButton>
-                    */
-
-                    }
+             
 
                           <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/unidade-saude")}>
                         <LocalHospital />
@@ -338,26 +310,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        <ButtonContent onClick={navigateTo("/baterias")}>
-                            <ProntuarioIconComponent fillColor="inherit"/>
-                            <Typography variant="body2" sx={{ ml: 1 }}>
-                                Avaliações
-                            </Typography>
-                        </ButtonContent>
-                        <Divider sx={{ marginTop: 1.5 }} flexItem />
-
-                        
-                        {/*
-                        <ButtonContent onClick={navigateTo("/notificacoes")}>
-                            <Badge badgeContent={1} color="error">
-                                <EmailIcon />
-                            </Badge>
-                            <Typography variant="body2" sx={{ ml: 1 }}>
-                                Notificações
-                            </Typography>
-                        </ButtonContent>
-                        <Divider sx={{ marginTop: 1.5 }} flexItem />
-                        */}
+                       
+                       
                         <ButtonContent onClick={navigateTo("/unidade-saude")}>
                             <LocalHospital />
                             <Typography variant="body2" sx={{ ml: 1 }}>
@@ -367,10 +321,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         <Divider sx={{ marginTop: 1.5 }} flexItem />
                         {!isProfissional && (
                             <>
-                                <ButtonContent onClick={navigateTo("/configuracoes")}>
+                                <ButtonContent onClick={navigateTo("/config")}>
                                     <SettingsIcon />
                                     <Typography variant="body2" sx={{ ml: 1 }}>
-                                        Configurações
+                                        Tarefas Administrativas
                                     </Typography>
                                 </ButtonContent>
                                 <Divider sx={{ marginTop: 1.5 }} flexItem />

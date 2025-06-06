@@ -1,12 +1,12 @@
+import datetime
 import os
 from flask import Blueprint, request, jsonify, send_from_directory, current_app
 from werkzeug.utils import secure_filename
 from PIL import Image
 import io
 from utils.auth import token_required
-
 from flask import Blueprint, request, jsonify
-from models import Colaborador, Paciente, ProfissionalSaude, User
+from models import Avaliacao, BateriaTestes, Colaborador, Laudo, Medico, Paciente, ProfissionalSaude, Questionario, User
 from extensions import db
 from utils.auth import token_required
 
@@ -229,3 +229,110 @@ def set_password():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
+
+
+
+@user_bp.route('/admin_metrics', methods=['GET'])
+@token_required(roles=['admin'])
+def admin_metrics():
+    """
+    Rota para obter métricas de administração.
+    """
+    
+    numero_usuarios = User.query.count()
+    numero_pacientes = Paciente.query.count()
+    pacientes_ultimos_30_dias = Paciente.query.filter(Paciente.created_at >= datetime.datetime.now() - datetime.timedelta(days=30)).count()
+    numero_colaboradores = Colaborador.query.count()
+    numero_profissionais_saude = ProfissionalSaude.query.count()
+    numero_medicos = Medico.query.count()
+    numero_usuarios = User.query.count()
+    numero_usuarios_sem_autenticacao = User.query.filter_by(is_active=False).count()
+    baterias_aplicadas_total = BateriaTestes.query.count()
+    baterias_ultimos_30_dias = BateriaTestes.query.filter(BateriaTestes.data_aplicacao >= datetime.datetime.now() - datetime.timedelta(days=30)).count()
+    baterias_respondidas_ultimos_30_dias = BateriaTestes.query.filter(BateriaTestes.data_aplicacao >= datetime.datetime.now() - datetime.timedelta(days=30), BateriaTestes.is_completo == True).count()
+    questionarios_cadastrados = Questionario.query.count()
+    avaliacoes_cadastrados = Avaliacao.query.count()
+    laudos_emitidos = Laudo.query.count()
+    laudos_emitidos_ultimos_30_dias = Laudo.query.filter(Laudo.updated_at >= datetime.datetime.now() - datetime.timedelta(days=30)).count()
+    
+    
+    return jsonify({
+        'numero_usuarios': numero_usuarios,
+        'numero_pacientes': numero_pacientes,
+        'pacientes_ultimos_30_dias': pacientes_ultimos_30_dias,
+        'numero_colaboradores': numero_colaboradores,
+        'numero_profissionais_saude': numero_profissionais_saude,
+        'numero_medicos': numero_medicos,
+        'numero_usuarios': numero_usuarios,
+        'numero_usuarios_sem_autenticacao': numero_usuarios_sem_autenticacao,
+        'baterias_aplicadas_total': baterias_aplicadas_total,
+        'baterias_ultimos_30_dias': baterias_ultimos_30_dias,
+        'baterias_respondidas_ultimos_30_dias': baterias_respondidas_ultimos_30_dias,
+        'questionarios_cadastrados': questionarios_cadastrados,
+        'avaliacoes_cadastrados': avaliacoes_cadastrados,
+        'laudos_emitidos': laudos_emitidos,
+        'laudos_emitidos_ultimos_30_dias': laudos_emitidos_ultimos_30_dias
+    })
+    
+@user_bp.route('/find_user_by_name/<string:substring>', methods=['GET'])
+@token_required(roles=['admin'])
+def find_user_by_name(substring):
+    
+    """
+        rota que pesquisa nos 4 tipos de usuários pelo nome e retorna os objetos com id, nome e role
+    """
+    pacientes = Paciente.query.filter(Paciente.nome.like(f'%{substring}%')).all()
+    medicos = Medico.query.filter(Medico.nome.like(f'%{substring}%')).all()
+    colaboradores = Colaborador.query.filter(Colaborador.nome.like(f'%{substring}%')).all()
+    profissionais = ProfissionalSaude.query.filter(ProfissionalSaude.nome.like(f'%{substring}%')).all()
+    
+    result = []
+    
+    
+    for paciente in pacientes:
+        result.append({
+            'id': paciente.user_id,
+            'nome': paciente.nome,
+            'role': 'paciente'
+        })
+    for medico in medicos:
+        result.append({
+            'id': medico.id,
+            'nome': medico.nome,
+            'role': 'medico'
+        })
+    for colaborador in colaboradores:
+        result.append({
+            'id': colaborador.id,
+            'nome': colaborador.nome,
+            'role': 'colaborador'
+        })
+    for profissional in profissionais:
+        result.append({
+            'id': profissional.id,
+            'nome': profissional.nome,
+            'role': 'profissional'
+        })
+    
+    return jsonify(result), 200
+
+
+
+@user_bp.route('/all_admins/<int:page>/<int:len>', methods=['GET'])
+@token_required(roles=['admin'])
+def all_admins(page, len):
+    admins = User.query.filter_by(role='admin').paginate(page=page, per_page=len, error_out=False)
+    return jsonify([admin.to_json() for admin in admins.items]), 200
+    
+@user_bp.route('/delete_admin/<string:id>', methods=['DELETE'])
+@token_required(roles=['admin'])
+def delete_admin(id):
+    len_admins = User.query.filter_by(role='admin').count()
+    if len_admins == 1:
+        return jsonify({'error': 'Nao pode deletar o ultimo admin'}), 400
+    admin = User.query.get(id)
+    if not admin:
+        return jsonify({'error': 'Admin nao encontrado'}), 404
+    db.session.delete(admin)
+    db.session.commit()
+    return jsonify({'message': 'Admin deletado com sucesso'}), 200

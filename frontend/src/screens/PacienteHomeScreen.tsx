@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   Box,
   Typography,
@@ -38,6 +38,8 @@ const PacienteHomeScreen: React.FC = () => {
   >("success");
   const [userImage, setUserImage] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
+  const [perfilCompleto, setPerfilCompleto] = useState(false);
+
      const fetchBaterias = async () => {
       if (!paciente) return;
       try {
@@ -131,6 +133,10 @@ const PacienteHomeScreen: React.FC = () => {
         );
         const data = await response.json();
         console.log("Perfil de saúde:", data);
+        // Se a chamada foi bem-sucedida, atualiza a lista de baterias
+        // para incluir o novo perfil de saúde, se criado.
+        await fetchBaterias();
+
       } catch (error) {
         console.error("Erro ensuring perfil de saúde:", error);
         setSnackbarMessage("Erro ao garantir perfil de saúde");
@@ -141,7 +147,7 @@ const PacienteHomeScreen: React.FC = () => {
 
     if (paciente) {
       ensurePerfilSaude();
-      fetchBaterias();
+      // fetchBaterias() foi movido para dentro de ensurePerfilSaude para garantir que execute após
     }
     if (userId) {
       fetchUserImage();
@@ -167,11 +173,17 @@ const PacienteHomeScreen: React.FC = () => {
     (b) => b.questionario.titulo === "Questionário Detalhado de Perfil Básico de Saúde"
   );
 
-  // Verifica se o perfil de saúde tem 100% das respostas
-  const perfilCompleto = perfilDeSaudeBateria
-    ? Object.keys(perfilDeSaudeBateria.bateria.respostas).length ===
-    perfilDeSaudeBateria.qtd_perguntas
-    : false;
+  useEffect(() => {
+    console.log(perfilDeSaudeBateria)
+    const quantidade_respostas = Object.keys(perfilDeSaudeBateria?.bateria.respostas ?? {}).length;
+
+    if (quantidade_respostas === 0) {
+      setPerfilCompleto(false);
+    } else {
+      setPerfilCompleto(true);
+    }
+    
+  }, [perfilDeSaudeBateria]);
 
   return (
     <PacienteLayout>
@@ -197,12 +209,18 @@ const PacienteHomeScreen: React.FC = () => {
           onReload={fetchUserImage}
 
         />
+
+        
         {!perfilCompleto && (
           <Button variant="contained" color="primary" onClick={navigateToPerfilDeSaude}>
             Continuar Perfil de Saúde
           </Button>
         )}
         <Divider sx={{ width: "100%", marginY: 2 }} />
+        
+        
+        
+        
         <Box sx={{ marginTop: 2, display: "flex", flexDirection: { xs: 'column', md: 'row' }, gap: 2 }}>
           <Box
             sx={{

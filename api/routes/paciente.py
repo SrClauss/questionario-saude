@@ -58,6 +58,9 @@ def create_paciente():
         print(f"Erro na rota POST /pacientes: {e}")  # Log do erro
         return jsonify({'error': str(e)}), 400
 
+
+
+
 @paciente_bp.route('/register', methods=['POST'])
 @token_required(roles=['admin', 'profissional_saude', 'colaborador'])
 def register_paciente():

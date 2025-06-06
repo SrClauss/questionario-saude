@@ -1,10 +1,12 @@
 import { Box, Typography, Divider } from '@mui/material'
+import { TypographyProps } from '@mui/material/Typography'; // Importa o tipo das props do Typography
 
 interface StylizedTitleProps {
-    title: string
+    title: string;
+    size?: TypographyProps['variant']; // Usa o tipo importado diretamente
 }
 
-export default function StylizedTitle({ title }: StylizedTitleProps) {
+export default function StylizedTitle({ title, size="h4" }: StylizedTitleProps) {
 
     return(
         <Box sx={{ 
@@ -15,10 +17,9 @@ export default function StylizedTitle({ title }: StylizedTitleProps) {
             paddingTop: { xs: 2, sm: 0 }  // Adiciona espaço no topo para dispositivos móveis
         }}>
             <Typography 
-                variant="h4"  
+                variant={size}
                 sx={{ 
                     fontWeight: 500,
-                    fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },  // Texto menor em dispositivos móveis
                     flexShrink: 0  // Impede que o texto encolha demais
                 }}
             >

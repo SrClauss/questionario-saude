@@ -9,12 +9,13 @@ import ColaboradorScreen from './screens/ColaboradorScreen'
 import QuestionarioScreen from './screens/QuestionarioScreen'
 import CadastroQuestionarioScreen from './screens/CadastroQuestionarioScreen'
 import ConfirmPasswordScreen from './screens/ConfirmPasswordScreen'
-import AplicacaoPacienteQuestionario from './screens/AplicacaoPacienteQuestionarioScreen'
 import TestesAplicadosPacienteScreen from './screens/TestesAplicadosPacienteScreen'
 import MedicoScreen from './screens/MedicoScreen'
 import UnidadeSaudeScreen from './screens/UnidadeSaudeScreen'
 import { UnidadeSaudeProvider } from './contexts/UnidadesSaudeContext'
 import AvaliacaoScreen from './screens/AvaliacaoScreen'
+import BateriaScreen from './screens/BateriaScreen'
+import ConfigScreen from './screens/ConfigScreen'
 function App() {
   return (
     <BrowserRouter>
@@ -31,11 +32,12 @@ function App() {
             <Route path='/cadastro-questionario' element={<CadastroQuestionarioScreen />} />
             <Route path='/cadastro-questionario/:id' element={<CadastroQuestionarioScreen />} />
             <Route path='/confirm-email/:token' element={<ConfirmPasswordScreen />} />
-            <Route path='/aplicacao-paciente-questionario/:id' element={<AplicacaoPacienteQuestionario />} />
+            <Route path='/bateria/:id' element={<BateriaScreen />} />
             <Route path='/paciente-baterias-list' element={<TestesAplicadosPacienteScreen />} />
             <Route path='/medico' element={<MedicoScreen />} />
             <Route path='/unidade-saude' element={<UnidadeSaudeScreen />} />
             <Route path='/avaliacao/:paciente_id' element={<AvaliacaoScreen />} />
+            <Route path='/config' element={<ConfigScreen />} />
           </Routes>
         </UnidadeSaudeProvider>
       </ThemeProvider>

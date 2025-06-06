@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import StylizedTitle from "../components/StylizedTitle";
 import LabeledBox from "../components/LabeledBox";
 import ResultQuestionario from "../components/ResultQuestionario";
@@ -151,7 +151,7 @@ useEffect(() => {
   };
 
   return (
-    <AdminLayout>
+    <VariableLayout>
       <Box
         sx={{
           padding: { xs: 2, md: 6 },
@@ -226,6 +226,6 @@ useEffect(() => {
           {snackBarProps.message}
         </Alert>
       </Snackbar>
-    </AdminLayout>
+    </VariableLayout>
   );
 }

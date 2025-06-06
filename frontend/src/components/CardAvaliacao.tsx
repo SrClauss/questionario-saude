@@ -31,7 +31,7 @@ interface CardAvaliacaoProps {
     avaliacaoJoin: AvaliacaoJoin;
     onOpenBateriaModal: () => void;
     onOpenLaudoModal: () => void;
-    onOpenMedicoModal: () => void;
+    onOpenMedicoModal: (avaliacaoId: string) => void;
     onRefresh: () => void;
     onDeleteAvaliacao: () => void;
 }
@@ -139,6 +139,7 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal, onOpe
 
                 {baterias_testes && baterias_testes.length > 0 && (
                     <>
+
                         <Divider sx={{ marginY: 2 }} />
                         <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
                             Baterias de Testes Aplicadas
@@ -245,6 +246,10 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal, onOpe
                             color="secondary"
                             size="small"
                             aria-label="add"
+                            onClick={(e)=>{
+                                e.preventDefault();
+                                onOpenMedicoModal(avaliacaoJoin.avaliacao.id);
+                            }}
 
                             sx={{
                                 position: 'absolute',

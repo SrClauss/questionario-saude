@@ -125,6 +125,7 @@ def update_alternativas_batch():
     ]
     """
     data = request.get_json()
+
     print(data)
     if not isinstance(data, list):
         return jsonify({'error': 'O payload deve ser uma lista de alternativas'}), 400

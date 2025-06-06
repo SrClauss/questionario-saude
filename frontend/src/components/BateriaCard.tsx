@@ -52,7 +52,7 @@ const BateriaCard: React.FC<BateriaCardProps> = ({ bateria, questionario, qtd_pe
                 <Box id="graficos" sx={{ display: 'flex', justifyContent: 'space-between' }} >
                 <Box sx={{ display:'flex', alignItems:'center', justifyContent: 'center', width: "50%" }}>
                         <PieChartResultados
-                            respostas={Object.keys(bateria.respostas)}
+                            respostas={bateria.respostas?Object.keys(bateria.respostas):[]}
                             qtd_perguntas={qtd_perguntas}
                             mode="tiny"
 
@@ -71,7 +71,7 @@ const BateriaCard: React.FC<BateriaCardProps> = ({ bateria, questionario, qtd_pe
                             />
                             <InfoBox
                                 backgroundColor={theme.palette.success.main}
-                                value={Object.keys(bateria.respostas).length}
+                                value={bateria.respostas?Object.keys(bateria.respostas).length:0}
                                 caption="Respostas"
                                 icon={<FactCheck sx={{ fontSize: "2em" }} htmlColor="white" />}
                             />

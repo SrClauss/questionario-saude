@@ -4,6 +4,7 @@ from extensions import db
 from sqlalchemy.orm import joinedload
 from utils.auth import token_required
 
+
 perguntas_bp = Blueprint('perguntas', __name__)
 
 
@@ -39,84 +40,84 @@ def  get_pergunta(id):
 @token_required(roles=['admin', 'profissional_saude'])
 def create_pergunta():
     """
-    Cria uma nova pergunta.
+    Cria uma nova pergunta com alternativas em lote recebendo este payload:
+    {
+        "texto": "Pergunta 1",
+        "sessao_id": 1
+        "tipo_resposta": "multipla_escolha",
+        "metodo_pontuacao": "pontos",
+        "ordem": 1,
+        "alternativas": [
+            {"texto": "Alternativa 1", "valor": 1, "ordem": 1},
+            {"texto": "Alternativa 2", "valor": 0, "ordem": 2}
+        ]
+        
+    }
     """
+    #primeiramente criar a pergunta e obter o id da mesma
     data = request.get_json()
-    try:
-        pergunta = Pergunta(
-            texto=data['texto'],
-            sessao_id=data['sessao_id'],
-            tipo_resposta=data.get('tipo_resposta', 'multipla_escolha'),
-            ordem=data.get('ordem', 0)
-        )
-        db.session.add(pergunta)
-        db.session.commit()
-        return jsonify(pergunta.to_json()), 201
-    except Exception as e:
-        print(f"Erro ao criar pergunta: {e}")
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
+    pergunta = Pergunta(
+        texto=data['texto'],
+        sessao_id=data['sessao_id'],
+        tipo_resposta=data['tipo_resposta'],
+        metodo_pontuacao=data['metodo_pontuacao'],
+        ordem=data['ordem']
+    )
+    db.session.add(pergunta)
+    db.session.commit()
+    pergunta_id = pergunta.id
 
+    #agora criar as alternativas
+    for alt_data in data['alternativas']:
+        alternativa = Alternativa(
+            pergunta_id=pergunta_id,
+            texto=alt_data['texto'],
+            valor=alt_data['valor'],
+            ordem=alt_data['ordem']
+        )
+        db.session.add(alternativa)
+
+    db.session.commit()
+    return jsonify(pergunta.to_json()), 201
 
 @perguntas_bp.route('/<id>', methods=['PUT'])
 @token_required(roles=['admin', 'profissional_saude'])
 def update_pergunta(id):
     """
-    Atualiza uma pergunta e suas alternativas.
+    Atualiza uma pergunta existente e suas alternativas.
+    Payload esperado (semelhante ao create_pergunta):
+    {
+        "texto": "Novo texto da Pergunta",
+        "sessao_id": 1,
+        "tipo_resposta": "nova_multipla_escolha",
+        "metodo_pontuacao": "novos_pontos",
+        "ordem": 2,
+        "alternativas": [
+            {"texto": "Nova Alternativa 1", "valor": 1, "ordem": 1},
+            {"texto": "Nova Alternativa 2", "valor": 0, "ordem": 2}
+        ]
+    }
     """
     data = request.get_json()
-    try:
-        pergunta = Pergunta.query.get(id)
-        if not pergunta:
-            return jsonify({'error': 'Pergunta não encontrada'}), 404
+    pergunta = Pergunta.query.get(id)
+    if not pergunta:
+        return jsonify({'error': 'Pergunta não encontrada'}), 404
 
-        # Atualiza dados básicos da pergunta
-        pergunta.texto = data['texto']
-        pergunta.sessao_id = data['sessao_id']
+    try:
+        pergunta.texto = data.get('texto', pergunta.texto)
+        pergunta.sessao_id = data.get('sessao_id', pergunta.sessao_id)
         pergunta.tipo_resposta = data.get('tipo_resposta', pergunta.tipo_resposta)
         pergunta.metodo_pontuacao = data.get('metodo_pontuacao', pergunta.metodo_pontuacao)
         pergunta.ordem = data.get('ordem', pergunta.ordem)
-        
-        # Processar alternativas se presentes no payload
-        if 'alternativas' in data and data['alternativas']:
-            # Separar alternativas para atualizar (com ID) e para inserir (sem ID)
-            alternativas_para_atualizar = []
-            alternativas_para_inserir = []
-            
+
+        if 'alternativas' in data:
+            Alternativa.query.filter_by(pergunta_id=id).delete()
             for alt_data in data['alternativas']:
-                if 'id' in alt_data and alt_data['id']:
-                    # Alternativa existente para atualizar
-                    alt = Alternativa.query.get(alt_data['id'])
-                    if alt and alt.pergunta_id == pergunta.id:
-                        # Só atualiza se for desta pergunta
-                        alt.texto = alt_data['texto']
-                        alt.valor = alt_data['valor']
-                        alt.ordem = alt_data['ordem']
-                        alternativas_para_atualizar.append(alt)
-                else:
-                    # Nova alternativa para inserir
-                    nova_alt = Alternativa(
-                        pergunta_id=pergunta.id,
-                        texto=alt_data['texto'],
-                        valor=alt_data['valor'],
-                        ordem=alt_data['ordem']
-                    )
-                    alternativas_para_inserir.append(nova_alt)
-            
-            # Adiciona todas as novas alternativas no banco de dados
-            if alternativas_para_inserir:
-                db.session.bulk_save_objects(alternativas_para_inserir)
-        
+                nova_alternativa = Alternativa(pergunta_id=id, texto=alt_data['texto'], valor=alt_data['valor'], ordem=alt_data['ordem'])
+                db.session.add(nova_alternativa)
         db.session.commit()
-        
-        # Obtém a pergunta atualizada com suas alternativas para retornar
-        pergunta_atualizada = Pergunta.query.options(joinedload(Pergunta.alternativas)).get(id)
-        pergunta_json = pergunta_atualizada.to_json()
-        pergunta_json['alternativas'] = [alt.to_json() for alt in pergunta_atualizada.alternativas]
-        
-        return jsonify(pergunta_json), 200
+        return jsonify(pergunta.to_json_detailed()), 200
     except Exception as e:
-        print(f"Erro ao atualizar pergunta: {e}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 

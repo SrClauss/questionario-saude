@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Snackbar, Alert, Pagination } from "@mui/material";
 import SearchBar from "../components/SearchBar";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import ColaboradorModal from "../modals/ColaboradorModal";
 import { Colaborador } from "../types/user";
 import { Add, Delete, Edit, InfoRounded } from "@mui/icons-material";
@@ -156,7 +156,7 @@ export default function ColaboradorScreen() {
 
     return (
 
-        <AdminLayout>
+        <VariableLayout>
             <ProtectedRouteProvider allowed={['admin', 'colaborador']}>
                 <Box sx={{ paddingTop: { xs: 4, sm: 4, md: 0 } }}>
                     <StylizedTitle title="Colaboradores" />
@@ -260,6 +260,6 @@ export default function ColaboradorScreen() {
                     </Alert>
                 </Snackbar>
             </ProtectedRouteProvider>
-        </AdminLayout>
+        </VariableLayout>
     );
 }

@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify
-from models import Laudo, Paciente, Medico, User
+from models import CID, Laudo, Paciente, Medico, User
 from extensions import db
 from utils.auth import token_required
 from flask import current_app
+import unidecode
 
 laudo_bp = Blueprint('laudo', __name__, url_prefix='/laudos')
 
@@ -175,3 +176,23 @@ def get_laudo_by_avaliacao(avaliacao_id):
         current_app.logger.error(f"Erro ao obter laudo para avaliação {avaliacao_id}. Erro: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
         
+@laudo_bp.route('/get_cid_by_description/<string:substring>', methods=['GET'])
+def get_cid_by_description(substring):
+    try:
+        cids = CID.query.filter(CID.unidecode_descricao.contains(unidecode.unidecode(substring.lower()))).all()
+        return jsonify([cid.to_json() for cid in cids]), 200
+    except Exception as e:
+        current_app.logger.error(f"Erro ao obter CIDs com substring {substring}. Erro: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@laudo_bp.route("/get_disease_by_cid/<string:cid_id>", methods=["GET"])
+def get_disease_by_cid(cid_id):
+    try:
+        cid = CID.query.get(cid_id)
+        if not cid:
+            return jsonify({'error': 'CID não encontrada'}), 404
+        return jsonify(cid.to_json()), 200
+    except Exception as e:
+        current_app.logger.error(f"Erro ao obter CID {cid_id}. Erro: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500

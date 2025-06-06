@@ -6,6 +6,26 @@ export interface FonteBibliografica {
   local?: string; // Local é opcional
 }
 
+export interface FaixaDePontuacaoInterface {
+  tipo_regra: "FAIXA_DE_PONTUACAO";
+  perguntas_para_calculo_ids: string[];
+  pontuacao_minima_exigida: number;
+  pontuacao_maxima_exigida: number;
+}
+
+export interface RespostasEspecificasInterface {
+  tipo_regra: "RESPOSTA_ESPECIFICA";
+  pergunta_alvo_id: string;
+  respostas_necessarias_ids: string[];
+  logica_respostas: "AND" | "OR";
+}
+export interface RoleDoUsuarioInterface {
+  tipo_regra: "ROLE_USUARIO";
+  roles_permitidos: string[];
+}
+export type RegrasVisibilidadeType = RespostasEspecificasInterface | FaixaDePontuacaoInterface | RoleDoUsuarioInterface;
+
+
 export interface Alternativa {
   id?: string;
   pergunta_id: string;
@@ -47,8 +67,8 @@ export interface Sessao {
   titulo: string;
   descricao?: string;
   ordem: number;
-  pergunta_condicional?: PerguntaCondicional; // Campo opcional para a pergunta condicional
-  respostas_condicionais?: RespostaCondicional[]; // Campo opcional para as respostas condicionais
+  regras_visibilidade?: RegrasVisibilidadeType[];
+  logica_principal_entre_regras?: "AND" | "OR";
   created_at: string;
   updated_at: string;
   perguntas: Pergunta[];

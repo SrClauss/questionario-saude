@@ -27,6 +27,7 @@ def create_bateria_teste():
     """
     data = request.get_json()
 
+
     try:
         # Converte data_aplicacao para datetime.date
         data_aplicacao = datetime.strptime(data['data_aplicacao'], '%Y-%m-%d').date()

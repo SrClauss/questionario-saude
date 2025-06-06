@@ -12,7 +12,6 @@ medico_bp = Blueprint('medico', __name__, url_prefix='/medicos')
 #rota que retorna todos os profissionais de saúde
 @medico_bp.route('/', methods=['GET'])
 @medico_bp.route('/<page>/<len>', methods=['GET'])
-@token_required(roles=['admin', 'medico', 'paciente'])
 def get_medicos(page=1, len=10):
     try:
         page = int(page)
@@ -64,7 +63,6 @@ def  create_medico():
 #rota que retorna um profissional de saúde pelo id
 
 @medico_bp.route('/<id>', methods=['GET'])
-@token_required(roles=['admin', 'medico', 'paciente'])
 def  get_medico(id):
     try:
         medico = Medico.query.get(id)
@@ -183,7 +181,7 @@ def  register_medico():
     
             
 @medico_bp.route('/set-password-confirm-email', methods=['POST'])
-@token_required(roles=['admin'])
+@token_required(roles=['admin', 'medico'])
 def  set_password_confirm_email():
     data = request.get_json()
     user = User.query.get(data['user_id'])
@@ -200,7 +198,6 @@ def  set_password_confirm_email():
         return jsonify({'error': str(e)}), 400
 #rota que retorna um medico pelo email
 @medico_bp.route('/email/<email>', methods=['GET'])
-@token_required(roles=['admin', 'medico', 'paciente'])
 def  get_medico_by_email(email):
     try:
         user = User.query.filter_by(email=email).first()
@@ -216,7 +213,6 @@ def  get_medico_by_email(email):
 #rota que retorna medicos pelo nome
 @medico_bp.route('/filter_by_name/<name>', methods=['GET'])
 @medico_bp.route('/filter_by_name/<name>/<page>/<len>', methods=['GET'])
-@token_required(roles=['admin', 'medico', 'paciente'])
 def  get_medicos_by_name(name, page=1, len=10):
     
     try:

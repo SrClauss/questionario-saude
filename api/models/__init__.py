@@ -290,11 +290,38 @@ class Sessao(db.Model):
 
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
     questionario_id = Column(String(26), ForeignKey('questionarios.id', ondelete='CASCADE'))
-    titulo = Column(String(100), nullable=False)
+    titulo = Column(String(500), nullable=False)
     descricao = Column(Text)
     ordem = Column(Integer, nullable=False)
-    pergunta_condicional = Column(JSON, nullable=True)  # JSON com id e texto da pergunta condicional
-    respostas_condicionais = Column(JSON, nullable=True)  # JSON com array de alternativas que ativam esta sessão
+    # Campos antigos para condicionalidade (serão substituídos ou depreciados)
+    # pergunta_condicional = Column(JSON, nullable=True)
+    # respostas_condicionais = Column(JSON, nullable=True)
+
+    regras_visibilidade = Column(JSON, nullable=True)
+    """
+    Estrutura esperada para regras_visibilidade:
+    {
+        "logica_principal_entre_regras": "AND" | "OR", // Como as regras na lista 'regras' são combinadas
+        "regras": [
+            {
+
+                "pergunta_alvo_id": "ulid_da_pergunta",
+                "respostas_necessarias_ids": ["ulid_da_alternativa_sim"],
+                "logica_respostas": "OR" // Se múltiplas respostas, como elas são avaliadas (AND/OR)
+            },
+            {
+                 "perguntas_para_calculo_ids": ["ulid_pergunta_1", "ulid_pergunta_2"], // Pontuação será somada
+                "pontuacao_minima_exigida": 10,
+                "pontuacao_maxima_exigida": 20
+            },
+      
+            {
+                 "roles_permitidos": ["terapeuta", "profissional_saude"] // Lista de roles que podem ver a sessão
+            }
+            // ... outras regras
+        ]
+    }
+    """
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -320,8 +347,9 @@ class Sessao(db.Model):
             'titulo': self.titulo,
             'descricao': self.descricao,
             'ordem': self.ordem,
-            'pergunta_condicional': self.pergunta_condicional,
-            'respostas_condicionais': self.respostas_condicionais,
+            # 'pergunta_condicional': self.pergunta_condicional, # Campo antigo
+            # 'respostas_condicionais': self.respostas_condicionais, # Campo antigo
+            'regras_visibilidade': self.regras_visibilidade,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -598,10 +626,9 @@ class Laudo(db.Model):
     id = Column(String(26), primary_key=True, default=lambda: str(ulid.ULID()))
     medico_id = Column(String(26), ForeignKey('medicos.id', ondelete='CASCADE'))
     paciente_id = Column(String(26), ForeignKey('pacientes.id', ondelete='CASCADE'))
-    cid = Column(String(10), nullable=False)
     data = Column(Date, nullable=False)
-    parecer = Column(Text, nullable=False)
-    abordagem_terapeutica = Column(Text, nullable=False)
+    parecer = Column(Text, nullable=True)
+    abordagem_terapeutica = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     medico = relationship("Medico")
@@ -613,6 +640,7 @@ class Laudo(db.Model):
         uselist=False,
         cascade="all, delete-orphan"
     )
+    cids = relationship("CID", secondary="cid_laudos", back_populates="laudos")
 
     def __repr__(self):
         return f"<Laudo(id='{self.id}', cid='{self.cid}')>"
@@ -630,3 +658,26 @@ class Laudo(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
  
+ 
+class CID(db.Model):
+    __tablename__ = 'cids'
+    cid = Column(String(26), primary_key=True, index=True)
+    descricao = Column(String(255), nullable=False)
+    unidecode_descricao = Column(String(255), nullable=False, index=True)
+    
+    laudos = relationship("Laudo", secondary="cid_laudos", back_populates="cids")
+    def __repr__(self):
+        return f"<CID(cid='{self.cid}', descricao='{self.descricao}')>"
+
+    def to_json(self):
+        return {
+            'cid': self.cid,
+            'descricao': self.descricao,
+            'unidecode_descricao': self.unidecode_descricao
+        }
+    
+    class CID_Laudo(db.Model):
+        __tablename__ = 'cid_laudos'
+        cid = Column(String(26), ForeignKey('cids.cid', ondelete='CASCADE'), primary_key=True)
+        laudo_id = Column(String(26), ForeignKey('laudos.id', ondelete='CASCADE'), primary_key=True)
+        created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

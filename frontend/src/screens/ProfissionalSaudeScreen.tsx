@@ -2,7 +2,7 @@ import React from "react";
 import { Snackbar, Alert, Pagination, Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
 import { Add, Delete, InfoRounded } from "@mui/icons-material";
 import SearchBar from "../components/SearchBar";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import ProfissionalSaudeModal from "../modals/ProfissionalSaudeModal";
 import { ProfissionalSaude } from "../types/user";
 import DeleteModal from "../modals/DeleteDialog";
@@ -147,13 +147,13 @@ export default function ProfissionalSaudeScreen() {
     };
 
     return (
-        <AdminLayout>
+        <VariableLayout>
             <Box id="container"
                 sx={{
                     paddingTop: { xs: 4, sm: 4, md: 0 },
                 }}
             >
-                <div>{JSON.stringify(unidadeSaude.unidadesSaude)}</div>
+            
                 <StylizedTitle title="Terapeutas" />
                 <SearchBar onSearch={handleFilter} />
                 {showProfissionalSaudeModal && (
@@ -253,6 +253,6 @@ export default function ProfissionalSaudeScreen() {
                     </Alert>
                 </Snackbar>
             </Box>
-        </AdminLayout>
+        </VariableLayout>
     );
 }

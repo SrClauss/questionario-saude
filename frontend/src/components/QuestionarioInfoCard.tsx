@@ -18,16 +18,18 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Questionario } from '../types/questionario';
 import { formatarFonteABNT } from '../utils/abntFormatter';
-import { DeleteForever, FileCopy } from '@mui/icons-material';
+import { DeleteForever, Edit, FileCopy } from '@mui/icons-material';
 import ConfirmActionModal from '../modals/ConfirmActionModal';
 import DefineVersionModal from './DefineVersionModal';
 
 interface QuestionarioInfoCardProps {
   questionario: Questionario;
-  onDelete?: () => void;
+  onEdit: () => void;
+  onRefresh: () => void;
+
 }
 
-const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionario, onDelete }) => {
+const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionario,  onEdit, onRefresh }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
@@ -101,7 +103,7 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
     setIsConfirmOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleRedefineBaterias = async () => {
     try {
       const token = localStorage.getItem("@App:token");
       if (!token) {
@@ -128,7 +130,7 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
         setSnackbarMessage(data.message || "Todas as baterias deletadas com sucesso!");
         setSnackbarSeverity("success");
         setOpenSnackbar(true);
-        onDelete && onDelete();
+
       } else {
         const errorData = await response.json();
         setSnackbarMessage(errorData.error || "Erro ao deletar baterias");
@@ -141,6 +143,7 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
       setOpenSnackbar(true);
     } finally {
       setIsConfirmOpen(false);
+      onRefresh();
     }
   };
 
@@ -156,6 +159,11 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
             <Typography variant="h6">{questionario.titulo}</Typography>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+                <Tooltip title="Editar Questionário">
+                <IconButton onClick={(e) => onEdit()} color="primary">
+                  <Edit color="secondary" />
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Duplicar Questionário">
                 <IconButton onClick={(e) => handleDuplicate(e)} color="primary">
                   <FileCopy color="primary" />
@@ -166,6 +174,8 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
                   <DeleteForever color="error" />
                 </IconButton>
               </Tooltip>
+
+        
             </Box>
           </Box>
         </AccordionSummary>
@@ -193,7 +203,7 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
           <ConfirmActionModal
             open={isConfirmOpen}
             onClose={() => setIsConfirmOpen(false)}
-            onConfirm={handleConfirmDelete}
+            onConfirm={handleRedefineBaterias}
             title="Deletar baterias"
             description="Você tem certeza que deseja deletar todas as baterias deste questionário? Esta ação não pode ser desfeita."
             confirmationText="deletar todas as baterias"

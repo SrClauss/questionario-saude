@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Snackbar, Alert, Pagination } from "@mui/material";
 import SearchBar from "../components/SearchBar";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import PacienteModal from "../modals/PacienteModal";
 import { Paciente } from "../types/user";
 import { Add, BallotRounded, Delete, Edit, InfoRounded } from "@mui/icons-material";
@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import StylizedTitle from "../components/StylizedTitle";
 import { apiFetch } from "../utils/apiFetch";
 import AvaliacaoIconComponent from "../components/AvaliacaoIconComponent";
+import { auth } from "../utils/auth";
+
 
 export default function PacienteScreen() {
     const [showPacienteModal, setShowPacienteModal] = useState(false);
@@ -22,7 +24,7 @@ export default function PacienteScreen() {
     const [showPagination, setShowPagination] = useState(false);
     const [page, setPage] = useState(1); // Página inicial
     const [totalPages, setTotalPages] = useState(1); // Total de páginas
-
+    const role = auth.getUserData()?.role;
     const handleSnackbarClose = () => {
         setSnackbar({ ...snackbar, open: false });
     };
@@ -66,7 +68,7 @@ export default function PacienteScreen() {
             });
             const data = await response.json();
             //ordene data.items por nome
-            
+
             setPacientes(data.items); // Assumindo que a API retorna um objeto com a propriedade 'items'
             setTotalPages(data.totalPages); // Assumindo que a API retorna um objeto com a propriedade 'totalPages'
             setShowPagination(true);
@@ -91,7 +93,7 @@ export default function PacienteScreen() {
         const baseUrl = import.meta.env.VITE_BACKEND_URL;
         const token = localStorage.getItem('@App:token');
         const url = `${baseUrl}/pacientes/${pacienteId}`; // Mantendo sua rota original
-        
+
         try {
             const response = await apiFetch(url, {
                 method: 'DELETE',
@@ -100,11 +102,11 @@ export default function PacienteScreen() {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-            
+
             if (response.ok) {
                 setSnackbar({ open: true, type: 'success', message: 'Paciente deletado com sucesso!' });
                 setShowDeleteModal(false);
-                
+
                 // Apenas isto já deveria atualizar a lista após a exclusão
                 if (searchQuery) {
                     handleFilter(searchQuery);
@@ -131,7 +133,7 @@ export default function PacienteScreen() {
     }, []);
 
     return (
-        <AdminLayout>
+        <VariableLayout>
             <Box id="container"
                 sx={{
                     paddingTop: { xs: 4, sm: 4, md: 0 },
@@ -167,39 +169,52 @@ export default function PacienteScreen() {
                                             {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
                                         </TableCell>
                                         <TableCell>
-                                            <IconButton
-                                                onClick={() => {navigate(`/baterias/paciente/${paciente.id}`)}}
-                                            >
-                                                <InfoRounded
-                                                    color="info"
-                                                    
+                                            <Tooltip title="Avaliações">
+                                                <IconButton
+                                                    onClick={() => navigate(`/avaliacao/${paciente.id}`)}
+                                                >
+                                                    <AvaliacaoIconComponent
+                                                        color="secoundary"
                                                     />
-                                            </IconButton>
-                                            <IconButton
-                                                onClick={() => navigate(`/avaliacao/${paciente.id}`)}
-                                            >
-                                                <AvaliacaoIconComponent
-                                                    color="secoundary"
-                                                />
-                                            </IconButton>
-                                            <IconButton>
-                                                <Edit
-                                                    color="success"
-                                                    onClick={() => {
-                                                        setSelectedPaciente(paciente);
-                                                        setShowPacienteModal(true);
-                                                    }}
-                                                />
-                                            </IconButton>
-                                            <IconButton
-                                                color="error"
-                                                onClick={() => {
-                                                    setSelectedPaciente(paciente);
-                                                    setShowDeleteModal(true);
-                                                }}
-                                            >
-                                                <Delete />
-                                            </IconButton>
+                                                </IconButton>
+
+                                            </Tooltip>
+
+                                            {
+                                                role === "admin" &&
+
+                                                (<Tooltip title="Editar">
+                                                    <IconButton >
+                                                        <Edit
+                                                            color="success"
+
+                                                            onClick={() => {
+                                                                setSelectedPaciente(paciente);
+                                                                setShowPacienteModal(true);
+                                                            }}
+                                                        />
+                                                    </IconButton>
+                                                </Tooltip>)
+                                            }
+
+
+                                            {
+
+                                                role === "admin" && (
+
+                                                    <Tooltip title="Excluir">
+                                                        <IconButton
+                                                            color="error"
+                                                            onClick={() => {
+                                                                setSelectedPaciente(paciente);
+                                                                setShowDeleteModal(true);
+                                                            }}
+                                                        >
+                                                            <Delete />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )
+                                            }
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -256,9 +271,9 @@ export default function PacienteScreen() {
                 )}
 
                 {
-                    
+
                 }
             </Box>
-        </AdminLayout>
+        </VariableLayout>
     );
 }

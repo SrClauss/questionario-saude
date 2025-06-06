@@ -3,7 +3,7 @@ import {
   Avatar, Box, Tooltip, Typography, useTheme, 
   Paper, LinearProgress
 } from "@mui/material";
-import AdminLayout from "../layouts/AdminLayout";
+import VariableLayout from "../layouts/VariableLayout";
 import { ProfissionalSaude } from "../types/user";
 import { auth } from "../utils/auth";
 import { 
@@ -15,6 +15,7 @@ import {
   CalendarMonth
 } from "@mui/icons-material";
 import InfoBox from "../components/InfoBox";
+import ProfissionalLayout from "../layouts/ProfissionalLayout";
 
 export default function ProfissionalHomeScreen() {
   const theme = useTheme();
@@ -136,7 +137,7 @@ export default function ProfissionalHomeScreen() {
   }, []);
 
   return (
-    <AdminLayout>
+    <ProfissionalLayout>
       <Box
         sx={{
           display: "flex",
@@ -323,6 +324,6 @@ export default function ProfissionalHomeScreen() {
           onChange={handleFileChange}
         />
       </Box>
-    </AdminLayout>
+    </ProfissionalLayout>
   );
 }
