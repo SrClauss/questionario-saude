@@ -8,7 +8,7 @@ import { Medico } from "../types/user";
 import { Add, Delete, Edit,  } from "@mui/icons-material";
 import { Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
 import DeleteModal from "../modals/DeleteDialog";
-import { useNavigate } from "react-router-dom";
+
 import StylizedTitle from "../components/StylizedTitle";
 import { apiFetch } from "../utils/apiFetch";
 

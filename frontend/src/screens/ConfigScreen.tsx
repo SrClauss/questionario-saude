@@ -25,7 +25,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import StylizedTitle from "../components/StylizedTitle";
 import { auth } from "../utils/auth";
 import SearchBar from "../components/SearchBar";
-import { Add, AddIcCallOutlined, Delete, Password } from "@mui/icons-material";
+import { Add, Delete, Password } from "@mui/icons-material";
 import ChangePasswordModal from "../modals/ChangePasswordModal";
 import { User } from "../types/user";
 import DeleteModal from "../modals/DeleteDialog";

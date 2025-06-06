@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect} from "react";
 import { Snackbar, Alert, Pagination } from "@mui/material";
 import SearchBar from "../components/SearchBar";
 import VariableLayout from "../layouts/VariableLayout";
 import ColaboradorModal from "../modals/ColaboradorModal";
 import { Colaborador } from "../types/user";
-import { Add, Delete, Edit, InfoRounded } from "@mui/icons-material";
+import { Add, Delete, Edit } from "@mui/icons-material";
 import { Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
 import DeleteModal from "../modals/DeleteDialog";
 import StylizedTitle from "../components/StylizedTitle";

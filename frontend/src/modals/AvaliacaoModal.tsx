@@ -1,5 +1,5 @@
 import { Avaliacao } from "../types/avaliacao";
-import { useEffect, useState, useReducer, use, useContext } from 'react'
+import { useEffect, useState, useReducer,  useContext } from 'react'
 import { Paciente } from "../types/user";
 import {
     Modal,

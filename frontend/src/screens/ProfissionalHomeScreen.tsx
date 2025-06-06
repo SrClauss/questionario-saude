@@ -3,7 +3,7 @@ import {
   Avatar, Box, Tooltip, Typography, useTheme, 
   Paper, LinearProgress
 } from "@mui/material";
-import VariableLayout from "../layouts/VariableLayout";
+
 import { ProfissionalSaude } from "../types/user";
 import { auth } from "../utils/auth";
 import { 

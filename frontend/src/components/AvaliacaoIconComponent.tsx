@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTheme } from "@mui/material";
-const AvaliacaoIconComponent: React.FC<React.SVGProps<SVGElement>> = (props) =>{
+const AvaliacaoIconComponent: React.FC<React.SVGProps<SVGElement>> = (_props) =>{
   const theme = useTheme();
 
   

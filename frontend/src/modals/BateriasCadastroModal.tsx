@@ -2,7 +2,6 @@ import {
     Modal,
     Box,
     Typography,
-    Divider,
     useTheme,
     Tooltip,
     Button,

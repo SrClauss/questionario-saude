@@ -4,7 +4,7 @@ import { auth } from '../utils/auth'
 
 interface ProtectedRouteProviderProps {
   children: ReactNode
-  allowed: ('admin' | 'profissional_saude' | 'paciente' | 'colaborador')[]
+  allowed: ('admin' | 'profissional_saude' | 'paciente' | 'colaborador' | 'medico')[]
 }
 
 export function ProtectedRouteProvider({ children, allowed }: ProtectedRouteProviderProps) {

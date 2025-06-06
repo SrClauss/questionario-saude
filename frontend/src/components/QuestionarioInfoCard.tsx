@@ -160,7 +160,7 @@ const QuestionarioInfoCard: React.FC<QuestionarioInfoCardProps> = ({ questionari
             <Typography variant="h6">{questionario.titulo}</Typography>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                 <Tooltip title="Editar Questionário">
-                <IconButton onClick={(e) => onEdit()} color="primary">
+                <IconButton onClick={(_e) => onEdit()} color="primary">
                   <Edit color="secondary" />
                 </IconButton>
               </Tooltip>

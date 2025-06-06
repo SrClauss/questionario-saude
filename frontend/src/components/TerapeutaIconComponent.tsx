@@ -1,7 +1,7 @@
 import * as React from "react";
 
 const TerapeitaIconComponent: React.FC<React.SVGProps<SVGElement>> = (
-  props
+
 ) => (
   <svg
     width="24" // Ajuste o tamanho conforme necessário

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Box,
     Typography,
@@ -14,7 +14,6 @@ import {
     CalendarMonth,
     PeopleAlt,
     Engineering,
-    LocalHospital,
     BallotRounded,
     Healing,
     FactCheckRounded,

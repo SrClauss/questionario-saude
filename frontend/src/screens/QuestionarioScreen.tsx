@@ -14,7 +14,7 @@ import {
     Pagination,
     Fab
 } from "@mui/material";
-import { Delete, InfoRounded, Add, Person2 } from "@mui/icons-material";
+import { Delete, InfoRounded, Add } from "@mui/icons-material";
 import SearchBar from "../components/SearchBar";
 import VariableLayout from "../layouts/VariableLayout";
 import { useNavigate } from "react-router-dom";

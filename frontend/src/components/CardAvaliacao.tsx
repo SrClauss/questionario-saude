@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, Typography, Box, Chip, Accordion, AccordionSummary, AccordionDetails, Divider, useTheme, Fab, Tooltip, Button, IconButton } from "@mui/material";
+import { Card, CardContent, CardHeader, Typography, Box, Chip, Accordion, AccordionSummary, AccordionDetails, Divider, useTheme, Fab, Tooltip, IconButton } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HealingIcon from '@mui/icons-material/Healing'; // Ícone para médico
 import BusinessIcon from '@mui/icons-material/Business'; // Ícone para unidade de saúde
@@ -36,7 +36,7 @@ interface CardAvaliacaoProps {
     onDeleteAvaliacao: () => void;
 }
 
-export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal, onOpenLaudoModal, onOpenMedicoModal, onRefresh, onDeleteAvaliacao }: CardAvaliacaoProps) {
+export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOpenMedicoModal, onRefresh, onDeleteAvaliacao }: CardAvaliacaoProps) {
     const theme = useTheme();
     const role = auth.getUserData()?.role;
     const { avaliacao, baterias_testes, paciente, unidade_saude, medico } = avaliacaoJoin;

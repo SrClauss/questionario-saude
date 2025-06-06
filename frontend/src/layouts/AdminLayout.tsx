@@ -5,7 +5,6 @@ import {
     IconButton,
     Typography,
     Divider,
-    Badge,
     useMediaQuery,
     useTheme,
     Drawer
@@ -13,7 +12,6 @@ import {
 import logo from "../assets/img/log-laranja-minified.png";
 import PeopleAlt from "@mui/icons-material/PeopleAlt";
 import PsycologyAltIcon from "@mui/icons-material/PsychologyAlt";
-import EmailIcon from "@mui/icons-material/Email";
 import Home from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
@@ -23,9 +21,8 @@ import BallotRounded from "@mui/icons-material/BallotRounded";
 import DoctorIconComponent from "../components/DoctorIconComponent";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../utils/auth";
-import { DashboardRounded, Engineering, LocalHospital } from "@mui/icons-material";
+import { Engineering, LocalHospital } from "@mui/icons-material";
 import TerapeutaIconComponent from "../components/TerapeutaIconComponent";
-import ProntuarioIconComponent from "../components/ProntuarioIconComponent";
 const Root = styled(Box)(() => ({
     display: "flex",
     flexDirection: "row",

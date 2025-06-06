@@ -2,7 +2,7 @@ import React, { useEffect, useReducer, useState } from 'react';
 import EnderecoModal from './EnderecoModal';
 import { TextField, Button, Box, Modal, Typography, CircularProgress } from '@mui/material';
 import { Endereco } from '../types/endereco';
-import ColumnResponsive from '../components/ColumnResponsive';
+
 import { auth } from '../utils/auth';
 import { useTheme, Theme } from '@mui/material/styles';
 

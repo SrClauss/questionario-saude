@@ -40,7 +40,7 @@ export default function AvaliacaoScreen() {
   const { paciente_id } = useParams();
   const [avaliacoesJoin, setAvaliaoesJoin] = useState<AvaliacaoJoin[]>([]);
   const [bateriaModalOpen, setBateriaModalOpen] = useState(false);
-  const [laudoModalOpen, setLaudoModalOpen] = useState(false);
+
   const [medicoModalOpen, setMedicoModalOpen] = useState(false);
   const [avaliacaoModalOpen, setAvaliacaoModalOpen] = useState(false);
   const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState<

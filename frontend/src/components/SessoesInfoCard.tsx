@@ -108,9 +108,7 @@ const SessaoInfoCard: React.FC<SessaoInfoCardProps> = ({ sessao, onDelete, onEdi
       }
       
       if (questionResponse.ok) {
-        // Não é mais necessário um fetch separado para alternativas
-        // O backend já lida com isso na rota de PUT/POST da pergunta
-        const data = await questionResponse.json();
+       
         let message = selectedPergunta ? "Pergunta atualizada" : "Pergunta criada";
         if (perguntaAtualizada.alternativas && perguntaAtualizada.alternativas.length > 0) {
           message += " com suas alternativas";

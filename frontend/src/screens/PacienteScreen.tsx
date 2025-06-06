@@ -4,7 +4,7 @@ import SearchBar from "../components/SearchBar";
 import VariableLayout from "../layouts/VariableLayout";
 import PacienteModal from "../modals/PacienteModal";
 import { Paciente } from "../types/user";
-import { Add, BallotRounded, Delete, Edit, InfoRounded } from "@mui/icons-material";
+import { Add,  Delete, Edit } from "@mui/icons-material";
 import { Box, Fab, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip } from "@mui/material";
 import DeleteModal from "../modals/DeleteDialog";
 import { useNavigate } from "react-router-dom";
