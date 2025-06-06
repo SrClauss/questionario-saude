@@ -318,7 +318,7 @@ export default function BateriaScreen() {
 
     // Cálculo do total de perguntas e respondidas
     const totalPerguntasVisiveis = getSessoesVisiveis().reduce((acc, sessao) => acc + (sessao.perguntas?.length || 0), 0);
-    const respondidas = Object.keys(respostas).length;
+
 
     const encontrarProximaPerguntaVisivel = (
         sessaoAtualId: string,

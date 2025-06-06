@@ -44,7 +44,7 @@ function CadastroQuestionarioContent() {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem("@App:token");
 
-  const { hasBaterias, setHasBaterias } = useQuestionarioContext();
+  const {  setHasBaterias } = useQuestionarioContext();
 
   
   const [isSessaoModalOpen, setIsSessaoModalOpen] = useState(false);
