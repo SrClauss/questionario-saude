@@ -234,4 +234,3 @@ def  get_profissionais_saude_by_name(name, page=1, len=10):
         
         print(e)
         return jsonify({'error': str(e)}), 500
-

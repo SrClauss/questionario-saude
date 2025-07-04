@@ -100,7 +100,7 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
            
         
                 }
-                sx={{ backgroundColor: theme.palette.grey[100] }}
+                sx={{ backgroundColor: "#f8f8f8" }}
             />
             <CardContent>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>

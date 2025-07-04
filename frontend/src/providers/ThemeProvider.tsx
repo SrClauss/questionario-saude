@@ -70,6 +70,14 @@ const theme = createTheme({
         },
       },
     },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#f8f8f8',
+        },
+      },
+
+    },
     MuiTextField: {
       styleOverrides: {
         root: {

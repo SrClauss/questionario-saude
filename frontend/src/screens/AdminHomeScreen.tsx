@@ -22,6 +22,7 @@ import {
     MedicalInformationOutlined,
     PsychologyAlt,
 } from "@mui/icons-material";
+import StylizedTitle from "../components/StylizedTitle";
 
 export default function AdminHomeScreen() {
     const theme = useTheme();
@@ -89,14 +90,7 @@ export default function AdminHomeScreen() {
     return (
         <AdminLayout>
             <Box sx={{ p: 3 }}>
-                <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-                    <Typography variant="h5" gutterBottom color={theme.palette.primary.main}>
-                        Dashboard Administrativa
-                    </Typography>
-                    <Typography variant="subtitle1" color="textSecondary">
-                        Visão geral do sistema com base nos dados disponíveis.
-                    </Typography>
-                </Paper>
+                <StylizedTitle title="Dashboard" />
 
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
                     <InfoBox backgroundColor={theme.palette.info.main} value={metrics.numero_usuarios || 0} caption="Total de Usuários" icon={<Group htmlColor="white" sx={{ fontSize: 48 }} />} />
@@ -109,7 +103,7 @@ export default function AdminHomeScreen() {
                     <InfoBox backgroundColor={theme.palette.primary.dark} value={metrics.questionarios_cadastrados || 0} caption="Questionários" icon={<BallotRounded htmlColor="white" sx={{ fontSize: 48 }} />} />
                     <InfoBox backgroundColor={theme.palette.secondary.dark} value={metrics.avaliacoes_cadastrados || 0} caption="Avaliações" icon={<AssignmentTurnedIn htmlColor="white" sx={{ fontSize: 48 }} />} />
                     <InfoBox backgroundColor={theme.palette.success.dark} value={metrics.baterias_aplicadas_total || 0} caption="Baterias (Total)" icon={<PsychologyAlt htmlColor="white" sx={{ fontSize: 48 }} />} />
-                    <InfoBox backgroundColor={theme.palette.warning.main} value={metrics.baterias_ultimos_30_dias || 0} caption="Baterias (30d)" icon={<CalendarMonth htmlColor="white" sx={{ fontSize: 48 }} />} />
+                    <InfoBox backgroundColor={theme.palette.warning.dark} value={metrics.baterias_ultimos_30_dias || 0} caption="Baterias (30d)" icon={<CalendarMonth htmlColor="white" sx={{ fontSize: 48 }} />} />
                     <InfoBox backgroundColor={theme.palette.error.light} value={metrics.baterias_respondidas_ultimos_30_dias || 0} caption="Baterias Resp. (30d)" icon={<FactCheckRounded htmlColor="white" sx={{ fontSize: 48 }} />} />
                     <InfoBox backgroundColor={theme.palette.info.dark} value={metrics.laudos_emitidos || 0} caption="Laudos (Total)" icon={<MedicalInformationOutlined htmlColor="white" sx={{ fontSize: 48 }} />} />
                     <InfoBox backgroundColor={theme.palette.grey[700]} value={metrics.laudos_emitidos_ultimos_30_dias || 0} caption="Laudos (30d)" icon={<CalendarMonth htmlColor="white" sx={{ fontSize: 48 }} />} />

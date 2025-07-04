@@ -1,5 +1,6 @@
 import { jwtDecode } from 'jwt-decode'
 
+
 interface TokenPayload {
   id: string
   email: string
@@ -49,12 +50,22 @@ interface ProfissionalSaude {
   updated_at: string
   user_id: string
 }
+interface Medico {
+  id: string
+  user_id: string
+  nome: string
+  crm: string
+  especialidade: string
+  created_at: string
+  
+}
 
 interface AuthResponse {
   user: User
   colaborador: Colaborador | null
   paciente: Paciente | null
   profissional_saude: ProfissionalSaude | null
+  medico: Medico | null
 }
 
 export const TOKEN_KEY = '@App:token'
@@ -74,8 +85,8 @@ export const auth = {
     localStorage.setItem(USER_KEY, JSON.stringify(data.user))
     
     // Salva o perfil específico (colaborador, paciente ou profissional)
-    const profile = data.colaborador || data.paciente || data.profissional_saude
-
+    const profile = data.colaborador || data.paciente || data.profissional_saude || data.medico
+   
 
     if (profile) {
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
@@ -100,7 +111,7 @@ export const auth = {
   /**
    * Recupera o perfil específico
    */
-  getProfile(): Colaborador | Paciente | ProfissionalSaude | null {
+  getProfile(): Colaborador | Paciente | ProfissionalSaude | Medico | null {
     const profile = localStorage.getItem(PROFILE_KEY)
     return profile ? JSON.parse(profile) : null
   },

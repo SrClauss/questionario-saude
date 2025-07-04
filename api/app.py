@@ -25,6 +25,7 @@ def create_app():
     CORS(app)  # Permite CORS para todas as rotas que começam com /backend
     # Configurações do aplicativo
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
@@ -35,8 +36,8 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
     app.config['UPLOAD_FOLDER'] = 'uploads'  # Diretório para salvar as imagens
-    app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024  # 1MB
     app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'webp'}  # Extensões permitidas
+    app.config['PERFIL_DE_SAUDE'] = os.getenv('PERFIL_DE_SAUDE')
 
     # Cria o diretório de upload se não existir
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -77,6 +78,7 @@ def create_app():
     from routes.avaliacao import avaliacao_bp
     from routes.unidade_saude import unidade_saude_bp
     from routes.laudo import laudo_bp
+    from routes.exames import exame_bp
     
     app.register_blueprint(user_bp, url_prefix='/backend/user', name='user_bp')
     app.register_blueprint(profissional_saude_bp, url_prefix='/backend/profissionais_saude', name='profissional_saude_bp')
@@ -92,22 +94,9 @@ def create_app():
     app.register_blueprint(avaliacao_bp, url_prefix='/backend/avaliacoes', name='avaliacao_bp')
     app.register_blueprint(unidade_saude_bp, url_prefix='/backend/unidades_saude', name='unidade_saude_bp')
     app.register_blueprint(laudo_bp, url_prefix='/backend/laudos', name='laudo_bp')
+    app.register_blueprint(exame_bp, url_prefix='/backend/exames', name='exame_bp')
     
  
-    # Adicione este errorhandler para capturar qualquer rota 404 e servir o index.html
-    @app.errorhandler(404)
-    def page_not_found(e):
-        app.logger.debug(f"404 capturado, servindo index.html")
-        return send_from_directory(app.static_folder, "index.html")
-    
-    # Você ainda mantém essa rota para servir arquivos estáticos
-    @app.route("/<path:path>")
-    def serve_static(path):
-        if os.path.exists(os.path.join(app.static_folder, path)) and "." in path:
-            return send_from_directory(app.static_folder, path)
-        # Se não for estático, vai cair no 404 e ser tratado pelo handler acima
-        return "", 404
-
     @app.route('/backend/hello', methods=['GET'])
     def hello():
         """
@@ -125,8 +114,10 @@ def list_routes(app):
     for rule in app.url_map.iter_rules():
         print(f"Rota: {rule} -> Métodos: {', '.join(rule.methods)}")
 
+
 if __name__ == '__main__':
     app = create_app()
+    
     with app.app_context():
         list_routes(app)
     app.run(debug=True)

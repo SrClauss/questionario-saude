@@ -38,7 +38,7 @@ const PacienteHomeScreen: React.FC = () => {
   >("success");
   const [userImage, setUserImage] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState(false);
-  const [perfilCompleto, setPerfilCompleto] = useState(false);
+
 
      const fetchBaterias = async () => {
       if (!paciente) return;
@@ -173,17 +173,6 @@ const PacienteHomeScreen: React.FC = () => {
     (b) => b.questionario.titulo === "Questionário Detalhado de Perfil Básico de Saúde"
   );
 
-  useEffect(() => {
-    console.log(perfilDeSaudeBateria)
-    const quantidade_respostas = Object.keys(perfilDeSaudeBateria?.bateria.respostas ?? {}).length;
-
-    if (quantidade_respostas === 0) {
-      setPerfilCompleto(false);
-    } else {
-      setPerfilCompleto(true);
-    }
-    
-  }, [perfilDeSaudeBateria]);
 
   return (
     <PacienteLayout>
@@ -211,11 +200,10 @@ const PacienteHomeScreen: React.FC = () => {
         />
 
         
-        {!perfilCompleto && (
+ 
           <Button variant="contained" color="primary" onClick={navigateToPerfilDeSaude}>
             Continuar Perfil de Saúde
           </Button>
-        )}
         <Divider sx={{ width: "100%", marginY: 2 }} />
         
         

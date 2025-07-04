@@ -20,12 +20,13 @@ export default function StylizedTitle({ title, size="h4" }: StylizedTitleProps) 
                 variant={size}
                 sx={{ 
                     fontWeight: 500,
-                    flexShrink: 0  // Impede que o texto encolha demais
+                    color: 'secondary.main',
+                   
                 }}
             >
                 {title}
             </Typography>
-            <Divider sx={{ flexGrow: 1, marginLeft: 2}} />
+            <Divider sx={{ flexGrow: 1, marginLeft: 2, backgroundColor: 'secondary.main'}} />
         </Box>
     ) 
 }

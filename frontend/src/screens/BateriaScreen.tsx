@@ -440,7 +440,7 @@ export default function BateriaScreen() {
                 }
             );
             const data = await response.json();
-            navigate("/paciente-baterias-list");
+            navigate("/avaliacao-paciente");
             console.log("Bateria atualizada com sucesso:", data);
 
         }
@@ -486,7 +486,7 @@ export default function BateriaScreen() {
                                 {currentSessao.descricao}
                             </Typography>
                         </Paper>
-
+                        
                         <Paper elevation={1} sx={{ padding: 2, margin: 2 }}>
                             <Typography variant="h6" component="h3">
                                 {currentPergunta.texto}
@@ -650,7 +650,7 @@ export default function BateriaScreen() {
                     color="primary"
                     aria-label="voltar para lista"
                     sx={{ position: "fixed", bottom: 32, right: 32, zIndex: 9999 }}
-                    onClick={() => navigate("/paciente-baterias-list")}
+                    onClick={() => navigate("/avaliacao-paciente")}
                 >
                     <HomeIcon />
                 </Fab>

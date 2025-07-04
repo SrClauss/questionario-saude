@@ -483,3 +483,39 @@ def get_baterias_by_titulo_descricao_questionario(criterio):
 
 
 
+@bateria_testes_bp.route('/avaliacao/<avaliacao_id>', methods=['GET'])
+@token_required(roles=['admin', 'profissional_saude','colaborador', 'paciente', 'medico'])
+def get_baterias_by_avaliacao(avaliacao_id):
+    """
+    Lista todas as baterias de testes de um avaliação especifica.
+    """
+    baterias = BateriaTestes.query.filter_by(avaliacao_id=avaliacao_id).all()
+    result = []
+    for bateria in baterias:
+        questionario = None
+        qtd_perguntas = 0
+        nome_profissional = None
+
+        if bateria.questionario_id:
+            questionario_obj = Questionario.query.options(
+                db.joinedload(Questionario.sessoes).joinedload(Sessao.perguntas)
+            ).get(bateria.questionario_id)
+            if questionario_obj:
+                questionario = questionario_obj.to_json() # Usar to_json() do modelo
+                for sessao_obj in questionario_obj.sessoes:
+                    qtd_perguntas += len(sessao_obj.perguntas)
+        
+        if bateria.profissional_saude_id:
+            profissional = ProfissionalSaude.query.get(bateria.profissional_saude_id)
+            if profissional:
+                nome_profissional = profissional.nome
+
+        bateria_json = bateria.to_json()
+
+        bateria_json['questionario'] = questionario
+        bateria_json['qtd_perguntas'] = qtd_perguntas
+        bateria_json['nome_profissional'] = nome_profissional
+        
+        result.append(bateria_json)
+        
+    return jsonify(result), 200

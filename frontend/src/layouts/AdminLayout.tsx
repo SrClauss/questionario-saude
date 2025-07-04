@@ -28,9 +28,8 @@ const Root = styled(Box)(() => ({
     flexDirection: "row",
     height: "100vh",
     background: "#f0f2f5",
-    padding: "12px 12px 64px 0",
 
-    boxSizing: "border-box",
+  
     "@media (max-width: 600px)": {
         flexDirection: "column",
         padding: 0,
@@ -147,7 +146,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/")}>
                         <Home />
                         <Typography variant="body2" sx={{ ml: 1 }}>
-                            Home
+                            Dashboard
                         </Typography>
                     </IconButton>
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/paciente")}>
@@ -163,7 +162,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </Typography>
                     </IconButton>
 
-                    <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/medicos")}>
+                    <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/medico")}>
 
                         <TerapeutaIconComponent />
                         <Typography variant="body2" sx={{ ml: 1 }}>
@@ -208,15 +207,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     </IconButton>
 
                     {!isProfissional && (
-                        <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/configuracoes")}>
+                        <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={navigateTo("/config")}>
                             <SettingsIcon />
                             <Typography variant="body2" sx={{ ml: 1 }}>
-                                Configurações
+                                Tarefas Admnistrativas
                             </Typography>
                         </IconButton>
                     )}
 
               
+
 
                     <IconButton sx={{ justifyContent: 'start' }} color="inherit" onClick={handleLogout}>
                         <Logout />
@@ -261,7 +261,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         <ButtonContent onClick={navigateTo("/")}>
                             <Home />
                             <Typography variant="body2" sx={{ ml: 1 }}>
-                                Home
+                                Dashboard
                             </Typography>
                         </ButtonContent>
                         <Divider sx={{ marginTop: 1.5 }} flexItem />

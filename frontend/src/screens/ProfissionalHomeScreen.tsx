@@ -102,8 +102,7 @@ export default function ProfissionalHomeScreen() {
       if (response.ok) {
         const data = await response.json();
         setDashboardData(data);
-        console.log("Dashboard data:", data);
-      } else {
+       } else {
         console.error("Error fetching dashboard data:", response.statusText);
       }
     } catch (error) {

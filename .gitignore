@@ -12,7 +12,12 @@ __pycache__/
 *.jpeg
 *.jpg
 *.png
+*.zip
+Caddyfile
+raspador-cids/
+compacta_api.py
 
+*.exe
 # API - Flask
 api/*.so
 api/.Python

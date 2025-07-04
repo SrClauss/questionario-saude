@@ -4,6 +4,7 @@ import AdminHomeScreen from '../screens/AdminHomeScreen'
 import PacienteHomeScreen from '../screens/PacienteHomeScreen'
 import ColaboradorHomeScreen from '../screens/ColaboradorHomeScreen'
 import ProfissionalHomeScreen from '../screens/ProfissionalHomeScreen'
+import MedicoHomeScreen from '../screens/MedicoHomeScreen'
 
 export default function HomeRouter() {
   // Verifica se está autenticado
@@ -24,6 +25,8 @@ export default function HomeRouter() {
       return <PacienteHomeScreen />
     case 'colaborador':
       return <ColaboradorHomeScreen />
+    case 'medico':
+      return <MedicoHomeScreen />
     default:
       return <Navigate to="/unauthorized" replace />
   }

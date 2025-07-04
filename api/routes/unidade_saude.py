@@ -9,7 +9,7 @@ unidade_saude_bp = Blueprint('unidade_saude', __name__, url_prefix='/unidades_sa
 
 # Rota para obter todas as unidades de saúde
 @unidade_saude_bp.route('/', methods=['GET'])
-@token_required(roles=['admin', 'medico', 'paciente'])
+@token_required(roles=['admin', 'medico', 'profissional_saude', 'paciente'])
 def get_unidades_saude():
     try:
         unidades = UnidadeSaude.query.all()
@@ -20,7 +20,7 @@ def get_unidades_saude():
 
 # Rota para criar uma nova unidade de saúde
 @unidade_saude_bp.route('/', methods=['POST'])
-@token_required(roles=['admin'])
+@token_required(roles=['admin', 'medico', 'profissional_saude'])
 def create_unidade_saude():
     data = request.get_json()
     print(data)
@@ -42,8 +42,8 @@ def create_unidade_saude():
         return jsonify({'error': str(e)}), 400
 
 # Rota para obter uma unidade de saúde pelo ID
-@unidade_saude_bp.route('/<int:id>', methods=['GET'])
-@token_required(roles=['admin', 'medico', 'paciente'])
+@unidade_saude_bp.route('/<string:id>', methods=['GET'])
+@token_required(roles=['admin', 'medico', 'paciente', 'profissional_saude'])
 def get_unidade_saude(id):
     try:
         unidade = UnidadeSaude.query.get(id)
@@ -55,8 +55,8 @@ def get_unidade_saude(id):
         return jsonify({'error': str(e)}), 500
 
 # Rota para atualizar uma unidade de saúde
-@unidade_saude_bp.route('/<int:id>', methods=['PUT'])
-@token_required(roles=['admin'])
+@unidade_saude_bp.route('/<string:id>', methods=['PUT'])
+@token_required(roles=['admin', 'medico', 'profissional_saude'])
 def update_unidade_saude(id):
     data = request.get_json()
     current_app.logger.debug(f"Dados recebidos na rota /<id> (update_unidade_saude) para ID {id}: {data}")
@@ -97,7 +97,7 @@ def delete_unidade_saude(id):
 # Rota para obter unidades de saúde por nome
 @unidade_saude_bp.route('/filter_by_name/<name>', methods=['GET'])
 @unidade_saude_bp.route('/filter_by_name/<name>/<page>/<len>', methods=['GET'])
-@token_required(roles=['admin', 'medico', 'paciente'])
+@token_required(roles=['admin', 'medico', 'paciente', 'profissional_saude'])
 def get_unidades_saude_by_name(name, page=1, len=10):
     try:
         page = int(page)
@@ -115,4 +115,3 @@ def get_unidades_saude_by_name(name, page=1, len=10):
     except Exception as e:
         current_app.logger.error(f"Erro ao obter unidades de saúde por nome '{name}': {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
-
