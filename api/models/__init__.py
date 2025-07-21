@@ -1,6 +1,7 @@
 from sqlalchemy import (
     JSON, Column, Integer, String, Text, Float,
-    ForeignKey, Date, DateTime, Boolean, func
+    ForeignKey, Date, DateTime, Boolean, func,
+    Enum as SQLAlchemyEnum
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone, timedelta # Adicionado timedelta
@@ -8,6 +9,13 @@ import ulid
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+import enum # Importar enum
+
+class TipoPagamentoEnum(enum.Enum):
+    cartao_credito = "Cartão de Crédito"
+    debito = "Débito"
+    pix = "PIX"
+    dinheiro = "Dinheiro"
 # Removido: from app import create_app # Geralmente não é necessário em models.py
 from extensions import db # Assumindo que db está em extensions.py
 from dotenv import load_dotenv # Adicionado
@@ -492,6 +500,11 @@ class Avaliacao(db.Model):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
+    # Novos campos de pagamento
+    valor_cobranca = Column(Float, nullable=True)
+    pago = Column(Boolean, default=False, nullable=False)
+    tipo_pagamento = Column(SQLAlchemyEnum(TipoPagamentoEnum), nullable=True)
+
     # Relacionamento um-para-um com Laudo (Laudo tem a FK avaliacao_id)
     laudo = relationship(
         "Laudo",
@@ -522,6 +535,9 @@ class Avaliacao(db.Model):
             'medico_id': self.medico_id, # Adicionado medico_id
             'fechada': self.fechada,
             # 'laudo_id': self.laudo.id if self.laudo else None, # Se quiser o ID do laudo associado
+            'valor_cobranca': self.valor_cobranca,
+            'pago': self.pago,
+            'tipo_pagamento': self.tipo_pagamento.name if self.tipo_pagamento else None, # Retorna o nome da chave (ex: 'pix')
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

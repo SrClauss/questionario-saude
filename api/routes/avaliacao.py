@@ -1,6 +1,6 @@
 
 from flask import Blueprint, request, jsonify
-from models import Alternativa, Avaliacao, BateriaTestes, Paciente, Pergunta, Questionario, Sessao, UnidadeSaude, Medico
+from models import Alternativa, Avaliacao, BateriaTestes, Paciente, Pergunta, Questionario, Sessao, UnidadeSaude, Medico, TipoPagamentoEnum
 from extensions import db
 from datetime import datetime
 from utils.auth import token_required
@@ -27,7 +27,9 @@ def create_avaliacao():
            paciente_id = data['paciente_id'],
            unidade_saude_id = data['unidade_saude_id'],
            data_inicio = data_inicio,
-           
+           valor_cobranca = data.get('valor_cobranca'),
+           pago = data.get('pago', False),
+           tipo_pagamento = data.get('tipo_pagamento')
        )
         db.session.add(avaliacao)
         db.session.commit()
@@ -47,6 +49,47 @@ def get_avaliacao(id):
     if not avaliacao:
         return jsonify({'error': 'Avaliação não encontrada'}), 404
     return jsonify(avaliacao.to_json()), 200
+
+# Rota para atualizar uma avaliação (geral)
+@avaliacao_bp.route('/<id>', methods=['PUT'])
+@token_required(roles=['admin', 'profissional_saude', 'colaborador'])
+def update_avaliacao(id):
+    """
+    Atualiza os dados de uma avaliação, incluindo informações de pagamento.
+    """
+    data = request.get_json()
+    avaliacao = Avaliacao.query.get(id)
+    if not avaliacao:
+        return jsonify({'error': 'Avaliação não encontrada'}), 404
+
+    try:
+        # Atualiza campos gerais se eles forem enviados
+        if 'data_inicio' in data:
+            avaliacao.data_inicio = datetime.strptime(data['data_inicio'], '%Y-%m-%d').date()
+        if 'unidade_saude_id' in data:
+            avaliacao.unidade_saude_id = data.get('unidade_saude_id')
+
+        # Atualiza campos de pagamento se eles forem enviados
+        if 'valor_cobranca' in data:
+            avaliacao.valor_cobranca = data.get('valor_cobranca')
+        if 'pago' in data:
+            avaliacao.pago = data.get('pago', False)
+            if not avaliacao.pago: # Se o pagamento for desmarcado, limpa o tipo
+                avaliacao.tipo_pagamento = None
+        if 'tipo_pagamento' in data and avaliacao.pago:
+            tipo_pagamento_str = data.get('tipo_pagamento')
+            if tipo_pagamento_str and tipo_pagamento_str in TipoPagamentoEnum.__members__:
+                avaliacao.tipo_pagamento = TipoPagamentoEnum[tipo_pagamento_str]
+            else:
+                avaliacao.tipo_pagamento = None
+
+        db.session.commit()
+        return jsonify(avaliacao.to_json()), 200
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erro ao atualizar avaliação {id}: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 400
+
 # Rota para atualizar uma avaliação
 @avaliacao_bp.route('/set_medico/<avaliacao_id>/<medico_id>', methods=['PUT'])
 @token_required(roles=['admin', 'profissional_saude'])
@@ -70,11 +113,7 @@ def set_medico(avaliacao_id, medico_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
-        
 
-        
-        
-# Rota para excluir uma avaliação
 @avaliacao_bp.route('/<id>', methods=['DELETE'])
 @token_required(roles=['admin', 'profissional_saude'])
 def delete_avaliacao(id):
@@ -191,6 +230,7 @@ def get_avaliacoes_completas_by_paciente_id(paciente_id):
     Lista todas as avaliações de um paciente específico pelo ID,
     incluindo suas baterias de testes e os respectivos questionários.
     """
+
     try:
         result = []
         # Eager load related data to reduce database queries
@@ -228,9 +268,14 @@ def get_avaliacoes_completas_by_paciente_id(paciente_id):
             
         return jsonify(result), 200
     except Exception as e:
-        return jsonify({'error': 'Ocorreu um erro interno ao processar a solicitação.'}), 500
+        return jsonify({'error': 'Ocorreu um erro interno ao processar a solicitação.' + str(e)}), 500
     
-
+"""Ocorreu um erro interno ao processar a solicitação.(pymysql.err.OperationalError) (1054, "Unknown column 'avaliacoes.valor_cobranca' in 'SELECT'")
+[SQL: SELECT avaliacoes.id AS avaliacoes_id, avaliacoes.paciente_id AS avaliacoes_paciente_id, avaliacoes.data_inicio AS avaliacoes_data_inicio, avaliacoes.unidade_saude_id AS avaliacoes_unidade_saude_id, avaliacoes.medico_id AS avaliacoes_medico_id, avaliacoes.fechada AS avaliacoes_fechada, avaliacoes.created_at AS avaliacoes_created_at, avaliacoes.updated_at AS avaliacoes_updated_at, avaliacoes.valor_cobranca AS avaliacoes_valor_cobranca, avaliacoes.pago AS avaliacoes_pago, avaliacoes.tipo_pagamento AS avaliacoes_tipo_pagamento, medicos_1.id AS medicos_1_id, medicos_1.user_id AS medicos_1_user_id, medicos_1.nome AS medicos_1_nome, medicos_1.crm AS medicos_1_crm, medicos_1.especialidade AS medicos_1_especialidade, medicos_1.created_at AS medicos_1_created_at, medicos_1.updated_at AS medicos_1_updated_at, unidades_saude_1.id AS unidades_saude_1_id, unidades_saude_1.nome AS unidades_saude_1_nome, unidades_saude_1.cnpj AS unidades_saude_1_cnpj, unidades_saude_1.endereco AS unidades_saude_1_endereco, unidades_saude_1.telefone AS unidades_saude_1_telefone, unidades_saude_1.email AS unidades_saude_1_email, unidades_saude_1.created_at AS unidades_saude_1_created_at, unidades_saude_1.updated_at AS unidades_saude_1_updated_at, pacientes_1.id AS pacientes_1_id, pacientes_1.nome AS pacientes_1_nome, pacientes_1.data_nascimento AS pacientes_1_data_nascimento, pacientes_1.telefone AS pacientes_1_telefone, pacientes_1.cpf AS pacientes_1_cpf, pacientes_1.enderecos AS pacientes_1_enderecos, pacientes_1.user_id AS pacientes_1_user_id, pacientes_1.created_at AS pacientes_1_created_at, pacientes_1.updated_at AS pacientes_1_updated_at 
+FROM avaliacoes LEFT OUTER JOIN medicos AS medicos_1 ON medicos_1.id = avaliacoes.medico_id LEFT OUTER JOIN unidades_saude AS unidades_saude_1 ON unidades_saude_1.id = avaliacoes.unidade_saude_id LEFT OUTER JOIN pacientes AS pacientes_1 ON pacientes_1.id = avaliacoes.paciente_id 
+WHERE avaliacoes.paciente_id = %(paciente_id_1)s]
+[parameters: {'paciente_id_1': '01JW4VTCTBPM7R21Y4K56FKS4R'}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)"""
 def _build_detailed_bateria_json(bateria_obj, tipos_graficaveis_validos, app_config):
     """
     Constrói o JSON detalhado para um objeto BateriaTestes.

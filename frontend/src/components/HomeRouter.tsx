@@ -22,7 +22,7 @@ export default function HomeRouter() {
     case 'profissional_saude':
       return <ProfissionalHomeScreen />
     case 'paciente':
-      return <PacienteHomeScreen />
+      return <PacienteHomeScreen />      
     case 'colaborador':
       return <ColaboradorHomeScreen />
     case 'medico':

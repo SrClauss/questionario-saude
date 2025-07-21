@@ -1,4 +1,4 @@
-import { Avaliacao } from "../types/avaliacao";
+import { Avaliacao, TipoPagamento } from "../types/avaliacao";
 import { useEffect, useState, useReducer,  useContext } from 'react'
 import { Paciente } from "../types/user";
 import {
@@ -12,8 +12,11 @@ import {
     MenuItem,
     FormControl,
     InputLabel,
+    InputAdornment,
+    FormControlLabel,
+    Switch,
 } from "@mui/material";
-import { auth } from "../utils/auth"; // Para obter o ID do profissional
+import { auth } from "../utils/auth";
 import { UnidadeSaudeContext } from "../contexts/UnidadesSaudeContext";
 
 // Estilo para o Box do Modal
@@ -27,6 +30,8 @@ const style = {
     boxShadow: 24,
     p: 4,
     borderRadius: 2,
+    maxHeight: '90vh',
+    overflowY: 'auto'
 };
 
 interface AvaliacaoModalProps {
@@ -43,6 +48,9 @@ const initialAvaliacaoData: Avaliacao = {
     laudo_id: null,
     paciente_id: '',
     fechada: false,
+    valor_cobranca: 0,
+    pago: false,
+    tipo_pagamento: '',
     created_at: '',
     updated_at: '',
 };
@@ -54,6 +62,10 @@ type AvaliacaoAction =
 const avaliacaoReducer = (state: Avaliacao, action: AvaliacaoAction): Avaliacao => {
     switch (action.type) {
         case 'SET_FIELD':
+            // Se o campo 'pago' for desmarcado, limpa o 'tipo_pagamento'
+            if (action.field === 'pago' && !action.payload) {
+                return { ...state, pago: false, tipo_pagamento: '' };
+            }
             return { ...state, [action.field]: action.payload };
         case 'RESET_AVALIACAO':
             return action.payload;
@@ -72,13 +84,16 @@ export default function AvaliacaoModal({ paciente, initialAvaliacao, open, onClo
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{ data_inicio?: string; unidade_saude_id?: string }>({});
     const mode = initialAvaliacao ? 'edit' : 'create';
+
     useEffect(() => {
-        if (initialAvaliacao) {
-            dispatch({ type: 'RESET_AVALIACAO', payload: { ...initialAvaliacao, paciente_id: paciente.id } });
-        } else {
-            dispatch({ type: 'RESET_AVALIACAO', payload: { ...initialAvaliacaoData, paciente_id: paciente.id } });
+        if (open) {
+            if (initialAvaliacao) {
+                dispatch({ type: 'RESET_AVALIACAO', payload: { ...initialAvaliacao, paciente_id: paciente.id } });
+            } else {
+                dispatch({ type: 'RESET_AVALIACAO', payload: { ...initialAvaliacaoData, paciente_id: paciente.id } });
+            }
         }
-    }, [initialAvaliacao, paciente.id, open]); // Adicionado `open` para resetar ao reabrir
+    }, [initialAvaliacao, paciente.id, open]);
 
     const validate = (): boolean => {
         const tempErrors: { data_inicio?: string; unidade_saude_id?: string } = {};
@@ -96,17 +111,16 @@ export default function AvaliacaoModal({ paciente, initialAvaliacao, open, onClo
         if (!validate()) return;
 
         setIsLoading(true);
-       
 
         const payload = {
             ...avaliacaoState,
             paciente_id: paciente.id,
-          };
+        };
 
         const backendUrl = import.meta.env.VITE_BACKEND_URL;
         const url = mode === 'create'
-            ? `${backendUrl}/avaliacoes` // Ajuste a rota conforme necessário
-            : `${backendUrl}/avaliacoes/${avaliacaoState.id}`; // Ajuste a rota
+            ? `${backendUrl}/avaliacoes`
+            : `${backendUrl}/avaliacoes/${avaliacaoState.id}`;
 
         const method = mode === 'create' ? 'POST' : 'PUT';
         const token = auth.getToken();
@@ -122,17 +136,13 @@ export default function AvaliacaoModal({ paciente, initialAvaliacao, open, onClo
             });
 
             if (response.ok) {
-                // const responseData = await response.json();
-                // onSubmit({ type: 'success', message: `Avaliação ${mode === 'create' ? 'criada' : 'atualizada'} com sucesso!` });
-                onClose(); // Fechar o modal em caso de sucesso
+                onClose();
             } else {
-                const errorData = await response.json().catch(() => ({ message: `Erro ao ${mode === 'create' ? 'criar' : 'atualizar'} avaliação.` }));
-                // onSubmit({ type: 'error', message: errorData.message });
-                console.error("Erro API:", errorData.message);
+                const errorData = await response.json().catch(() => ({ error: `Erro ao ${mode === 'create' ? 'criar' : 'atualizar'} avaliação.` }));
+                console.error("Erro API:", errorData.error);
             }
         } catch (error) {
             console.error("Erro de rede:", error);
-            // onSubmit({ type: 'error', message: "Falha na comunicação com o servidor." });
         } finally {
             setIsLoading(false);
         }
@@ -153,29 +163,22 @@ export default function AvaliacaoModal({ paciente, initialAvaliacao, open, onClo
                     onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'data_inicio', payload: e.target.value })}
                     fullWidth
                     margin="normal"
-                    slotProps={
-                        {
-                            inputLabel: {
-                                shrink: true,
-                            }
-                        }
-                    }
+                    InputLabelProps={{ shrink: true }}
                     error={!!errors.data_inicio}
                     helperText={errors.data_inicio}
                     disabled={isLoading}
                 />
-                <FormControl fullWidth margin="normal">
-                    <InputLabel >Unidade de Saude</InputLabel>
+                <FormControl fullWidth margin="normal" error={!!errors.unidade_saude_id}>
+                    <InputLabel>Unidade de Saúde</InputLabel>
                     <Select
-                        label="Unidade de Saude"
+                        label="Unidade de Saúde"
                         value={avaliacaoState.unidade_saude_id}
                         onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'unidade_saude_id', payload: e.target.value })}
-                        fullWidth
-                        error={!!errors.unidade_saude_id}
-
                         disabled={isLoading}
                     >
-                        <MenuItem value="">Selecione uma Unidade de Saúde</MenuItem>
+                        <MenuItem value="">
+                            <em>Selecione uma Unidade de Saúde</em>
+                        </MenuItem>
                         {unidadesSaude.unidadesSaude.map((unidade) => (
                             <MenuItem key={unidade.id} value={unidade.id}>
                                 {unidade.nome}
@@ -183,7 +186,48 @@ export default function AvaliacaoModal({ paciente, initialAvaliacao, open, onClo
                         ))}
                     </Select>
                 </FormControl>
-              
+
+                <TextField
+                    label="Valor da Cobrança"
+                    type="number"
+                    value={avaliacaoState.valor_cobranca || ''}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'valor_cobranca', payload: e.target.value ? parseFloat(e.target.value) : null })}
+                    fullWidth
+                    margin="normal"
+                    InputProps={{
+                        startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                    }}
+                    disabled={isLoading}
+                />
+
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={avaliacaoState.pago || false}
+                            onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'pago', payload: e.target.checked })}
+                            disabled={isLoading}
+                        />
+                    }
+                    label="Pago"
+                    sx={{ mt: 1, display: 'block' }}
+                />
+
+                <FormControl fullWidth margin="normal" disabled={isLoading || !avaliacaoState.pago}>
+                    <InputLabel>Tipo de Pagamento</InputLabel>
+                    <Select
+                        label="Tipo de Pagamento"
+                        value={avaliacaoState.tipo_pagamento || ''}
+                        onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'tipo_pagamento', payload: e.target.value as TipoPagamento })}
+                    >
+                        <MenuItem value="">
+                            <em>Selecione</em>
+                        </MenuItem>
+                        <MenuItem value="cartao_credito">Cartão de Crédito</MenuItem>
+                        <MenuItem value="debito">Débito</MenuItem>
+                        <MenuItem value="pix">PIX</MenuItem>
+                        <MenuItem value="dinheiro">Dinheiro</MenuItem>
+                    </Select>
+                </FormControl>
 
                 <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                     <Button onClick={onClose} color="secondary" disabled={isLoading}>

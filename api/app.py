@@ -25,7 +25,7 @@ def create_app():
     CORS(app)  # Permite CORS para todas as rotas que começam com /backend
     # Configurações do aplicativo
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB    
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
@@ -117,7 +117,4 @@ def list_routes(app):
 
 if __name__ == '__main__':
     app = create_app()
-    
-    with app.app_context():
-        list_routes(app)
     app.run(debug=True)

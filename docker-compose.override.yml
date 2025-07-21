@@ -1,0 +1,12 @@
+# Este arquivo é lido AUTOMATICAMENTE pelo Docker Compose e sobrescreve
+# configurações do arquivo principal para o ambiente de desenvolvimento local.
+# NÃO ENVIE ESTE ARQUIVO PARA O SEU VPS.
+
+services:
+  nginx:
+    volumes:
+      # Monta o seu nginx.conf local (herdado do docker-compose.yml principal)
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # SOBRESCREVE os volumes dos certificados para usar a pasta local './certs'
+      - ./certs/fullchain.pem:/etc/ssl/certs/fullchain.pem:ro
+      - ./certs/privkey.pem:/etc/ssl/private/privkey.pem:ro

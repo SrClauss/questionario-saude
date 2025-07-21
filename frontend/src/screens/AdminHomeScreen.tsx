@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
     Box,
     Typography,
-    Paper,
     LinearProgress,
     useTheme,
 } from "@mui/material";
@@ -35,6 +34,7 @@ export default function AdminHomeScreen() {
             const baseUrl = import.meta.env.VITE_BACKEND_URL;
             const token = localStorage.getItem("@App:token");
             const url = `${baseUrl}/user/admin_metrics`;
+
 
             if (!token) {
                 console.error("Token não encontrado.");

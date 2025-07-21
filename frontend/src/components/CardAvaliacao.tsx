@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, Typography, Box, Chip, Accordion, AccordionSummary, AccordionDetails, Divider, useTheme, Fab, Tooltip, IconButton } from "@mui/material";
+import { Card, CardContent, CardHeader, Typography, Box, Chip, Accordion, AccordionSummary, AccordionDetails, Divider, useTheme, Fab, Tooltip, IconButton, Button } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import HealingIcon from '@mui/icons-material/Healing'; // Ícone para médico
 import BusinessIcon from '@mui/icons-material/Business'; // Ícone para unidade de saúde
@@ -6,14 +6,15 @@ import PersonIcon from '@mui/icons-material/Person'; // Ícone para paciente
 import AssignmentIcon from '@mui/icons-material/Assignment'; // Ícone para laudo
 import { Paciente, Medico } from "../types/user";
 import { UnidadeSaude } from "../types/unidade_saude";
-import { Avaliacao as AvaliacaoType } from "../types/avaliacao";
+import { Avaliacao as AvaliacaoType, TipoPagamento } from "../types/avaliacao";
 import { BateriaTestes } from "../types/baterias";
 import { Questionario } from "../types/questionario";
 import { auth } from "../utils/auth";
-import { DeleteForever, MedicalInformationOutlined, PsychologyAltOutlined } from "@mui/icons-material";
+import { DeleteForever, MedicalInformationOutlined, MonetizationOn, PsychologyAltOutlined } from "@mui/icons-material";
 import DoctorIconComponent from "./DoctorIconComponent";
 import { MouseEvent, useState } from "react";
 import DeleteModal from "../modals/DeleteDialog";
+import PagamentoModal from "../modals/PagamentoModal";
 // Tipos que já existem no seu AvaliacaoScreen.tsx
 interface BateriasTestesJoin extends BateriaTestes {
     questionario: Questionario;
@@ -36,14 +37,38 @@ interface CardAvaliacaoProps {
     onDeleteAvaliacao: () => void;
 }
 
-export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOpenMedicoModal, onRefresh, onDeleteAvaliacao }: CardAvaliacaoProps) {
+export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal, onOpenLaudoModal, onOpenMedicoModal, onRefresh, onDeleteAvaliacao }: CardAvaliacaoProps) {
     const theme = useTheme();
     const role = auth.getUserData()?.role;
     const { avaliacao, baterias_testes, paciente, unidade_saude, medico } = avaliacaoJoin;
     const [bateriaToDelete, setBateriaToDelete] = useState<string | null>(null);
+    const [isPagamentoModalOpen, setIsPagamentoModalOpen] = useState(false);
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     };
+
+    const formatCurrency = (value: number | null | undefined) => {
+        if (value === null || value === undefined) {
+            return 'Não definido';
+        }
+        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+
+    const formatPaymentType = (type: TipoPagamento | undefined) => {
+        if (!type) return 'N/A';
+        const paymentTypes: Record<TipoPagamento, string> = {
+            'cartao_credito': 'Cartão de Crédito', 'debito': 'Débito', 'pix': 'PIX', 'dinheiro': 'Dinheiro', '': 'Não especificado'
+        };
+        return paymentTypes[type] || type;
+    };
+
+    const handleClosePagamentoModal = (shouldRefresh?: boolean) => {
+        setIsPagamentoModalOpen(false);
+        if (shouldRefresh) {
+            onRefresh();
+        }
+    };
+
     const [openDeleteModal, setOpenDeleteModal] = useState(false);
     
     const handleOpenDeleteModal = (e: MouseEvent, bateriaId: string) => {
@@ -81,12 +106,14 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
     }
     return (
         <Card sx={{
-            marginBottom: 2,
+            backgroundColor: "white",
+        
             position: 'relative', // Essencial para o posicionamento absoluto do Fab
             paddingBottom: 7
         }}>
             <CardHeader
                 title={`Avaliação`}
+            
                 subheader={`Iniciada em: ${formatDate(avaliacao.data_inicio)}`}
                 action={
 
@@ -100,7 +127,6 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
            
         
                 }
-                sx={{ backgroundColor: "#f8f8f8" }}
             />
             <CardContent>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -137,6 +163,48 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
                     )}
                 </Box>
 
+                {/* Seção de Pagamento - Visível apenas para Admin e Colaborador */}
+                {(role === 'admin' || role === 'colaborador') && (
+                    <Accordion sx={{ mt: 2, boxShadow: 'none', '&:before': { display: 'none' }, borderTop: '1px solid', borderColor: 'divider' , backgroundColor: "white"}}>
+                        <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="payment-panel-content"
+                            id="payment-panel-header"
+                            
+                        >
+                            <Typography sx={{ fontWeight: 'medium', color: 'text.secondary' }}>Informações Financeiras</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <MonetizationOn color="action" />
+                                    <Typography variant="body1">
+                                        <strong>Valor:</strong> {formatCurrency(avaliacao.valor_cobranca)}
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Chip
+                                        label={avaliacao.pago ? "Pago" : "Pendente"}
+                                        color={avaliacao.pago ? "success" : "warning"}
+                                        size="small"
+                                    />
+                                    {avaliacao.pago && avaliacao.tipo_pagamento && (
+                                        <Typography variant="body2" sx={{ ml: 1 }}>({formatPaymentType(avaliacao.tipo_pagamento)})</Typography>
+                                    )}
+                                </Box>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() => setIsPagamentoModalOpen(true)}
+                                    sx={{ mt: 1, alignSelf: 'flex-start' }}
+                                >
+                                    {avaliacao.pago ? 'Editar Pagamento' : 'Registrar Pagamento'}
+                                </Button>
+                            </Box>
+                        </AccordionDetails>
+                    </Accordion>
+                )}
+
                 {baterias_testes && baterias_testes.length > 0 && (
                     <>
 
@@ -153,13 +221,14 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
                                 '&:before': {
                                     display: 'none',
                                 },
-                                mb: 1
+                                mb: 1,
+                                backgroundColor: "white"
                             }}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls={`panel${index}-content`}
                                     id={`panel${index}-header`}
-                                    sx={{ backgroundColor: theme.palette.grey[50] }}
+                                    sx={{ backgroundColor: "white" }}
                                 >
                                     <Typography sx={{ fontWeight: 'medium' }}>
                                         {bateria.questionario?.titulo || "Questionário não identificado"}
@@ -174,7 +243,7 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
                                         <DeleteForever color="error" />
                                    </IconButton>
                                 </AccordionSummary>
-                                <AccordionDetails sx={{ backgroundColor: theme.palette.background.paper }}>
+                                <AccordionDetails sx={{ backgroundColor: theme.palette.background.default }}>
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                                         <Typography variant="body2">
                                             <strong>Questionário:</strong> {bateria.questionario?.titulo} (Versão: {bateria.questionario?.versao || 'N/A'})
@@ -196,7 +265,7 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
             {
                 (role === "profissional_saude" || role === "admin") && (
 
-                    <Tooltip title="Adcionar Bateria de Testes" placement="top-end">
+                    <Tooltip title="Adicionar Bateria de Testes" placement="top-end">
                         <Fab
                             color="secondary"
                             size="small"
@@ -218,23 +287,29 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
                 )
             }
             {
-                (role === "medico" || role === "admin") && (
-
-                    <Tooltip title="Adcionar Laudo" placement="top-end">
-                        <Fab
-                            color="secondary"
-                            size="small"
-                            aria-label="add"
-
-                            sx={{
-                                position: 'absolute',
-                                bottom: 16,
-                                right: 66
-
-
-                            }}>
-                            <MedicalInformationOutlined /> {/* Adicione um ícone ao Fab */}
-                        </Fab>
+                (role === "medico" || role === "admin" || role === "profissional_saude") && (
+                    <Tooltip title={role === 'medico' ? "Adicionar Laudo" : "Apenas médicos podem adicionar laudos"} placement="top-end">
+                        {/* O Tooltip precisa de um wrapper (span) para funcionar em botões desabilitados */}
+                        <span>
+                            <Fab
+                                color="secondary"
+                                size="small"
+                                aria-label="add"
+                                disabled={role !== 'medico'}
+                                onClick={(e) => {
+                                    if (role === 'medico') {
+                                        e.preventDefault();
+                                        onOpenLaudoModal();
+                                    }
+                                }}
+                                sx={{
+                                    position: 'absolute',
+                                    bottom: 16,
+                                    right: 66
+                                }}>
+                                <MedicalInformationOutlined />
+                            </Fab>
+                        </span>
                     </Tooltip>
                 )
             }
@@ -296,6 +371,11 @@ export default function CardAvaliacao({ avaliacaoJoin, onOpenBateriaModal,  onOp
             onClose={() => setOpenDeleteModal(false)}
             onConfirm={() =>handleDeleteBateria()}
             itemName="esta bateria de testes"
+           />
+           <PagamentoModal
+                open={isPagamentoModalOpen}
+                onClose={handleClosePagamentoModal}
+                avaliacao={avaliacao}
            />
             
         </Card>

@@ -29,7 +29,7 @@ import PesquisaAvaliacoesMedicoScreen from './screens/PesquisaAvaliacoesMedicoSc
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/app/">
       <ThemeProvider>
         <Routes>
           {/* Rotas Públicas */}

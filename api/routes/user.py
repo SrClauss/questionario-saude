@@ -112,21 +112,31 @@ def delete_user(id):
 @user_bp.route("/login", methods=["POST"])
 def login():
     """
-    Realiza o login de um usuário.
+    Realiza o login de um usuário e retorna um token de autenticação.
     """
-    data = request.get_json()
-    user = User.query.filter_by(email=data["email"]).first()
+    try:
+        data = request.get_json()
+        if not data or "email" not in data or "password" not in data:
+            return jsonify({"error": "Email e senha são obrigatórios"}), 400
 
-  
-    if user is None:
-        return jsonify({"error": "Usuário não encontrado"}), 404
+        email = data["email"]
+        password = data["password"]
+    except Exception:
+        return jsonify({"error": "Requisição inválida"}), 400
 
+    user = User.query.filter_by(email=email).first()
+
+    # Combina a verificação de usuário e senha por segurança e eficiência.
+    # Evita a enumeração de usuários e só busca perfis se a senha estiver correta.
+    if user is None or not user.check_password(password):
+        return jsonify({"error": "Credenciais inválidas"}), 401
+
+    # Busca os perfis associados apenas após a autenticação bem-sucedida
     paciente = Paciente.query.filter_by(user_id=user.id).first()
     colaborador = Colaborador.query.filter_by(user_id=user.id).first()
     profissional_saude = ProfissionalSaude.query.filter_by(user_id=user.id).first()
     medico = Medico.query.filter_by(user_id=user.id).first()
-    if user is None or not user.check_password(data["password"]):
-        return jsonify({"error": "Credenciais inválidas"}), 401
+
     result = {
         "user": user.to_json(),
         "paciente": paciente.to_json() if paciente else None,

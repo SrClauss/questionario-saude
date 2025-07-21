@@ -217,9 +217,6 @@ export default function AvaliacaoScreen() {
         }}
       >
         {avaliacoesJoin.map((avaliacaoJoin) => (
-          <>
-          
-          
           <CardAvaliacao
             key={avaliacaoJoin.avaliacao.id}
             avaliacaoJoin={avaliacaoJoin}
@@ -228,21 +225,25 @@ export default function AvaliacaoScreen() {
               setBateriaModalOpen(true);
             }}
             onOpenLaudoModal={() => setBateriaModalOpen(true)}
-            onOpenMedicoModal={() => setMedicoModalOpen(true)}
+            onOpenMedicoModal={() => {
+              setAvaliacaoSelecionada(avaliacaoJoin.avaliacao.id);
+              setMedicoModalOpen(true);
+            }}
             onRefresh={fetchAvaliacaoJoin}
             onDeleteAvaliacao={() => {
               setAvaliacaoSelecionada(avaliacaoJoin.avaliacao.id);
               setConfirmDeleteModalOpen(true);
             }}
           />
-          <AtribuirMedicoModal
-          open={medicoModalOpen}
-          avaliacaoId={avaliacaoJoin.avaliacao.id}
-          onClose={() => setMedicoModalOpen(false)}
-          onSubmit={handleAtribuirMedico}
-        />
-          </>
         ))}
+        {avaliacaoSelecionada && (
+          <AtribuirMedicoModal
+            open={medicoModalOpen}
+            avaliacaoId={avaliacaoSelecionada}
+            onClose={() => { setMedicoModalOpen(false); setAvaliacaoSelecionada(null); }}
+            onSubmit={handleAtribuirMedico}
+          />
+        )}
         <BateriasCadastroModal
           open={bateriaModalOpen}
           onSubmit={(questionarioId, data_aplicacao) => {
@@ -252,12 +253,16 @@ export default function AvaliacaoScreen() {
           }}
           onClose={() => {
             setBateriaModalOpen(false);
+            setAvaliacaoSelecionada(null);
           }}
         />
 
         <ConfirmActionModal
           open={confirmDeleteModalOpen}
-          onClose={() => setConfirmDeleteModalOpen(false)}
+          onClose={() => {
+            setConfirmDeleteModalOpen(false);
+            setAvaliacaoSelecionada(null);
+          }}
           onConfirm={() => {
             handleDeleteAvalicao();
             setConfirmDeleteModalOpen(false);

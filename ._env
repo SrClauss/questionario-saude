@@ -1,0 +1,11 @@
+MAIL_PASSWORD=DY213y1984
+MAIL_DEFAULT_SENDER=cadastro@giftxz.top
+CONFIRMATION_EMAIL_URL=http://localhost/confirm-email
+FLASK_ENV=production
+DATABASE_URL=mysql+pymysql://noemi_user:dy213y1984@db:3306/noemisoares
+PDF_SIGNATURE_ENCRYPTION_KEY=SDfUqKxEPIsN8mJhKwdsl_9pOGLCCOEZjH3DUImn_iE=
+PERFIL_DE_SAUDE=Questionário Detalhado de Perfil Básico de Saúde
+DB_ROOT_PASSWORD=uma_senha_super_secreta_para_o_root
+DB_NAME=noemisoares
+DB_USER=noemi_user
+DB_PASSWORD=dy213y1984
